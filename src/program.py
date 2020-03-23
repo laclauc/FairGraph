@@ -47,14 +47,15 @@ def get_graph_prot(sizes=[150, 150], probs=[[0.15, 0.005], [0.005, 0.15]], numbe
             protS = np.random.choice(2, n, p=p*1/2)
 
     elif choice == 'partition':
-
         part_idx = g.graph['partition']
         for i in range(len(part_idx)):
             protS[list(part_idx[i])] = i
 
         # Shuffle x% of the protected attributes to change the degree of dependence
         protS = shuffle_part(protS, prop_shuffle=shuffle)
-        if np.asarray(probs).shape[0] > 2:
+
+        # Handle the case when S is binary but the partition >2
+        if np.asarray(probs).shape[0] > 2 & number_class == 'binary':
             idx_mix = np.where(protS == 2)[0]
             _temp = np.random.choice([0, 1], size=(len(idx_mix),), p=[1./2, 1./2])
             i = 0
@@ -65,6 +66,7 @@ def get_graph_prot(sizes=[150, 150], probs=[[0.15, 0.005], [0.005, 0.15]], numbe
     # Assign the attribute as a feature of the nodes directly in the graph
     dict_s = {i: protS[i] for i in range(0, len(protS))}
     nx.set_node_attributes(g, dict_s, 's')
+    
     return g
 
 
