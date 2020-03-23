@@ -11,19 +11,17 @@ import os
 
 def get_graph_prot(sizes=[150, 150], probs=[[0.15, 0.005], [0.005, 0.15]], number_class='binary', choice='random',
                    shuffle=0.2):
-
     """
-    Generate a graph with a community structure, and where the nodes are assigned a protected attribute
-
-    * sizes : number of nodes in each protected group
-    * probs : probabilities of links between the protected attribute, and within them
-    * choice : controls the dependency between the protected attribute and the community structure
-        - random : the structure and the attribute are completely independent
-        - partition : the structure and the attribute are dependent
-    * shuffle : when the choice is partition, it controls the degree of dependency (low value corresponding to stronger
+     Generate a graph with a community structure, and where the nodes are assigned a protected attribute
+    :param sizes:  number of nodes in each protected group
+    :param probs: probabilities of links between the protected attribute, and within them
+    :param number_class: the number of protected groups (binary or multi)
+    :param choice: controls the dependency between the protected attribute and the community structure
+         - random : the structure and the attribute are completely independent
+         - partition : the structure and the attribute are dependent
+    :param shuffle: when the choice is partition, it controls the degree of dependency (low value corresponding to stronger
     dependence.
-
-    ** Return : the graph where the protected attribute is a feature of the nodes
+    :return: the graph where the protected attribute is a feature of the nodes
     """
 
     # Generate a graph following the stochastic block model
@@ -66,23 +64,37 @@ def get_graph_prot(sizes=[150, 150], probs=[[0.15, 0.005], [0.005, 0.15]], numbe
     # Assign the attribute as a feature of the nodes directly in the graph
     dict_s = {i: protS[i] for i in range(0, len(protS))}
     nx.set_node_attributes(g, dict_s, 's')
-    
+
     return g
 
 
 def shuffle_part(protS, prop_shuffle=0.1):
+    """
+    Randomly shuffle some of the protected attributes
+    :param protS: the vector to shuffle
+    :param prop_shuffle: the proportion of label to shuffle
+    :return: the shuffled vector
+    """
     prop_shuffle = prop_shuffle
-    # create boolean mask of about fraction prop_shuffle
     ix = np.random.choice([True, False], size=protS.size, replace=True, p=[prop_shuffle, 1 - prop_shuffle])
-    # pull the masked portion and shuffle
     protS_shuffle = protS[ix]
     np.random.shuffle(protS_shuffle)
-    # reinsert
     protS[ix] = protS_shuffle
     return protS
 
 
-def total_repair(X, protS, metric='jaccard', case='weighted', algo='emd', reg=0, log=False, name='data'):
+def total_repair(g, metric='jaccard', case='weighted', algo='emd', reg=0, log=False, name='data'):
+    """
+    
+    :param g:
+    :param metric:
+    :param case:
+    :param algo:
+    :param reg:
+    :param log:
+    :param name:
+    :return:
+    """
 
     otdists = ['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine', 'dice', 'euclidean',
                'hamming', 'jaccard', 'kulsinski', 'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto',
