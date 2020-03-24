@@ -41,7 +41,11 @@ for i in range(trial):
     new_adj, gamma, M = total_repair_emd(g,  metric='euclidean', case='weighted', log=False)
     new_g = nx.from_numpy_matrix(new_adj)
 
-    
+    # Compare embedding 'power' of prediction on both versions of the graph
+    embedding_origin, s_origin, idx_origin = emb_node2vec(g, s)
+    embedding_repair, s_repair, idx_repair = emb_node2vec(new_g, s)
+
+
     if log == 'True':
         prot0 = np.where(s == 0)[0]
         prot1 = np.where(s == 1)[0]
@@ -53,7 +57,7 @@ for i in range(trial):
         plt.legend(loc="upper left", scatterpoints=1, prop={'size': 15})
         plt.tight_layout()
 
-        plt.savefig('g1.eps', bbox_inches='tight', format='eps')
+        plt.savefig(synthetic_case+'.eps', bbox_inches='tight', format='eps')
         plt.show()
 
 
