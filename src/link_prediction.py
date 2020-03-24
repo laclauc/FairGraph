@@ -31,3 +31,4 @@ def transform_str_to_int(orig_node_list, edges):
         ind_sec_ele = [y[0] for y in orig_node_list].index(edges[i][1])
         edges[i] = (ind_first_ele, ind_sec_ele)
     return edges
+
