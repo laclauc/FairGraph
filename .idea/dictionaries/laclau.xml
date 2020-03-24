@@ -9,8 +9,12 @@
       <w>fairwalk</w>
       <w>hadamard</w>
       <w>jaccard</w>
+      <w>kfold</w>
+      <w>lbfgs</w>
       <w>mahalanobis</w>
+      <w>matplotlib</w>
       <w>otdists</w>
+      <w>preprocessing</w>
       <w>probs</w>
       <w>prot</w>
       <w>seuclidean</w>
