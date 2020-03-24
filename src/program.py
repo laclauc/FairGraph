@@ -4,13 +4,11 @@ import ot
 from scipy.sparse import issparse
 import networkx as nx
 from sklearn.manifold import TSNE
-#from ot_laplacian import *
 from node2vec import Node2Vec
 import os
 
 
-def get_graph_prot(sizes=[150, 150], probs=[[0.15, 0.005], [0.005, 0.15]], number_class='binary', choice='random',
-                   shuffle=0.2):
+def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random', shuffle=0.2):
     """
      Generate a graph with a community structure, and where the nodes are assigned a protected attribute
     :param sizes:  number of nodes in each protected group
@@ -19,10 +17,16 @@ def get_graph_prot(sizes=[150, 150], probs=[[0.15, 0.005], [0.005, 0.15]], numbe
     :param choice: controls the dependency between the protected attribute and the community structure
          - random : the structure and the attribute are completely independent
          - partition : the structure and the attribute are dependent
-    :param shuffle: when the choice is partition, it controls the degree of dependency (low value corresponding to stronger
-    dependence.
+    :param shuffle: when the choice is partition, it controls the degree of dependency (low value corresponding to
+     stronger dependence.
     :return: the graph where the protected attribute is a feature of the nodes
     """
+
+    if sizes is None:
+        sizes = [150, 150]
+
+    if probs is None:
+        probs = [[0.15, 0.005], [0.005, 0.15]]
 
     # Generate a graph following the stochastic block model
     g = nx.stochastic_block_model(sizes, probs)
@@ -53,7 +57,7 @@ def get_graph_prot(sizes=[150, 150], probs=[[0.15, 0.005], [0.005, 0.15]], numbe
         protS = shuffle_part(protS, prop_shuffle=shuffle)
 
         # Handle the case when S is binary but the partition >2
-        if np.asarray(probs).shape[0] > 2 & number_class == 'binary':
+        if (np.asarray(probs).shape[0] > 2) & (number_class == 'binary'):
             idx_mix = np.where(protS == 2)[0]
             _temp = np.random.choice([0, 1], size=(len(idx_mix),), p=[1./2, 1./2])
             i = 0
@@ -83,37 +87,37 @@ def shuffle_part(protS, prop_shuffle=0.1):
     return protS
 
 
-def total_repair(g, metric='jaccard', case='weighted', algo='emd', reg=0, log=False, name='data'):
+def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='plot_cost_gamma'):
     """
-    
-    :param g:
-    :param metric:
-    :param case:
-    :param algo:
-    :param reg:
-    :param log:
-    :param name:
-    :return:
+    Repairing of the graph with OT and the emd version
+    :param g: a graph to repair. The protected attribute is a feature of the node
+    :param metric: the distance metric for the cost matrix
+    :param case: the new graph is by nature a weighed one. We can also binarize it according to a threshold ('bin')
+    :param log: if true plot the cost matrix and the transportation plan
+    :param name: name of the file to save the figures
+    :return: the repaired graph, the transportation plan, the cost matrix
     """
 
-    otdists = ['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine', 'dice', 'euclidean',
-               'hamming', 'jaccard', 'kulsinski', 'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto',
-               'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean', 'wminkowski', 'yule']
+    global M
+    x = nx.adjacency_matrix(g)
+    s = nx.get_node_attributes(g, 's')
 
-    if issparse(X):
-        X = X.todense()
+    otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard', 'mahalanobis', 'matching', 'seuclidean',
+               'sqeuclidean', ]
 
-    #print(X[0][0])
+    if issparse(x):
+        x = x.todense()
+
     # Separate rows adjacency matrix based on the protected attribute
-    idx_p0 = np.where(protS == 0)
-    X_0 = X[idx_p0]
+    idx_p0 = np.where(s == 0)
+    x_0 = x[idx_p0]
 
-    idx_p1 = np.where(protS == 1)
-    X_1 = X[idx_p1]
+    idx_p1 = np.where(s == 1)
+    x_1 = x[idx_p1]
 
     # Get the barycenter between adj0 and adj1
-    n0, d0 = X_0.shape
-    n1, d1 = X_1.shape
+    n0, d0 = x_0.shape
+    n1, d1 = x_1.shape
 
     # Compute barycenters using POT library
     # Uniform distributions on samples
@@ -122,39 +126,30 @@ def total_repair(g, metric='jaccard', case='weighted', algo='emd', reg=0, log=Fa
 
     # loss matrix
     if metric in otdists:
-        M = np.asarray (ot.dist(X_0, X_1, metric=metric))
+        M = np.asarray(ot.dist(x_0, x_1, metric=metric))
     elif metric == 'simrank':
         sim = nx.simrank_similarity(g)
-        Msim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
-        M = np.asarray(Msim)
+        m_sim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
+        M = np.asarray(m_sim)
     M /= M.max()
 
     # Exact transport
-    if algo == 'emd':
-        gamma = ot.emd(a, b, M)
-    elif algo == 'sinkhorn':
-        gamma = ot.sinkhorn(a, b, M, reg)
-    elif algo == 'laplacian':
-        kwargs = {}
-        kwargs['sim'] = 'gauss'
-        kwargs['alpha'] = 0.5
-        gamma = compute_transport(X_0, X_1, method='laplace', metric='jaccard', weights='unif', reg=1, solver=None, wparam=1, **kwargs)
+
+    gamma = ot.emd(a, b, M)
 
     # Total data repair
     pi_0 = n0 / (n0+n1)
     pi_1 = 1 - pi_0
 
-    X_0_rep = pi_0 * X_0 + n0 * pi_1 * np.dot(gamma, X_1)
-    X_1_rep = pi_1 * X_1 + n1 * pi_0 * np.dot(gamma.T, X_0)
+    x_0_rep = pi_0 * x_0 + n0 * pi_1 * np.dot(gamma, x_1)
+    x_1_rep = pi_1 * x_1 + n1 * pi_0 * np.dot(gamma.T, x_0)
 
-    new_X = np.zeros(X.shape)
-    new_X[idx_p0, :] = X_0_rep
-    new_X[idx_p1, :] = X_1_rep
+    new_x = np.zeros(x.shape)
+    new_x[idx_p0, :] = x_0_rep
+    new_x[idx_p1, :] = x_1_rep
 
     if case == 'bin':
-        #threshold, upper, lower = 0.5, 1, 0
-        #new_X = np.where(new_X >= threshold, upper, lower)
-        new_X[np.where(new_X<np.quantile(new_X, 0.4))==0]
+        new_x[np.where(new_x < np.quantile(new_x, 0.4)) == 0]
 
     if log:
         plt.imshow(gamma)
@@ -167,7 +162,84 @@ def total_repair(g, metric='jaccard', case='weighted', algo='emd', reg=0, log=Fa
         plt.show()
         plt.savefig('costMatrix_' + name + '.png')
 
-    return new_X, gamma, M
+    return new_x, gamma, M
+
+
+def total_repair_sinkhorn(g, metric='euclidean', reg=0.01, case='bin', log=False,  name='plot_cost_gamma'):
+    """
+    Repairing of the graph with OT and the sinkhorn version
+    :param g: a graph to repair. The protected attribute is a feature of the node
+    :param metric: the distance metric for the cost matrix
+    :param reg : entropic regularisation term
+    :param case: the new graph is by nature a weighed one. We can also binarize it according to a threshold ('bin')
+    :param log: if true plot the cost matrix and the transportation plan
+    :param name: name of the file to save the figures
+    :return: the repaired graph, the transportation plan, the cost matrix
+    """
+
+    x = nx.adjacency_matrix(g)
+    s = nx.get_node_attributes(g, 's')
+
+    otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard', 'mahalanobis', 'matching', 'seuclidean',
+               'sqeuclidean', ]
+
+    if issparse(x):
+        x = x.todense()
+
+    # Separate rows adjacency matrix based on the protected attribute
+    idx_p0 = np.where(s == 0)
+    x_0 = x[idx_p0]
+
+    idx_p1 = np.where(s == 1)
+    x_1 = x[idx_p1]
+
+    # Get the barycenter between adj0 and adj1
+    n0, d0 = x_0.shape
+    n1, d1 = x_1.shape
+
+    # Compute barycenters using POT library
+    # Uniform distributions on samples
+    a = np.ones((n0,))/n0
+    b = np.ones((n1,))/n1
+
+    # loss matrix
+    if metric in otdists:
+        M = np.asarray(ot.dist(x_0, x_1, metric=metric))
+    elif metric == 'simrank':
+        sim = nx.simrank_similarity(g)
+        m_sim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
+        M = np.asarray(m_sim)
+    M /= M.max()
+
+    # Sinkhorn transport
+    gamma = ot.sinkhorn(a, b, M, reg)
+
+    # Total data repair
+    pi_0 = n0 / (n0+n1)
+    pi_1 = 1 - pi_0
+
+    x_0_rep = pi_0 * x_0 + n0 * pi_1 * np.dot(gamma, x_1)
+    x_1_rep = pi_1 * x_1 + n1 * pi_0 * np.dot(gamma.T, x_0)
+
+    new_x = np.zeros(x.shape)
+    new_x[idx_p0, :] = x_0_rep
+    new_x[idx_p1, :] = x_1_rep
+
+    if case == 'bin':
+        new_x[np.where(new_x < np.quantile(new_x, 0.4)) == 0]
+
+    if log:
+        plt.imshow(gamma)
+        plt.colorbar()
+        plt.show()
+        plt.savefig('gamma_' + name + '.png')
+
+        plt.imshow(M)
+        plt.colorbar()
+        plt.show()
+        plt.savefig('costMatrix_' + name + '.png')
+
+    return new_x, s, gamma, M
 
 
 def visuTSNE(X, protS, k=2, seed=0, plotName='tsne_visu'):
@@ -189,15 +261,26 @@ def visuTSNE(X, protS, k=2, seed=0, plotName='tsne_visu'):
     plt.show()
 
 
-def emb_matrix(g, S, dimension=32, walk_length=15, num_walks=100, window=10):
+def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10):
+    """
+    Compute the node embedding using Node2Vec
+    :param g: a graph
+    :param s: protected attribute (vector)
+    :param dimension: dimension of the embedding
+    :param walk_length: length of the random walk
+    :param num_walks: number of walks
+    :param window: window
+    :return: the embedding matrix and the associate protected attribute
+    """
 
     node2vec = Node2Vec(g, dimensions=dimension, walk_length=walk_length, num_walks=num_walks)
     model = node2vec.fit(window=window, min_count=1)
     idx = list(map(int, model.wv.index2word))
-    X = model.wv.vectors
-    new_S = S[idx]
+    emb_x = model.wv.vectors
+    new_s = s[idx]
 
-    return X, new_S
+    return emb_x, new_s
+
 
 def load_graph(G,file_str,name): # REQUIRED FOR VERSE
     G_2 = G.copy()
