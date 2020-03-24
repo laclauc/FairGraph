@@ -2,8 +2,11 @@
   <dictionary name="laclau">
     <words>
       <w>barycenters</w>
+      <w>bcsr</w>
       <w>binarize</w>
       <w>coords</w>
+      <w>edgelist</w>
+      <w>fairwalk</w>
       <w>hadamard</w>
       <w>jaccard</w>
       <w>mahalanobis</w>

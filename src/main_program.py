@@ -19,7 +19,7 @@ def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random
          - partition : the structure and the attribute are dependent
     :param shuffle: when the choice is partition, it controls the degree of dependency (low value corresponding to
      stronger dependence.
-    :return: the graph where the protected attribute is a feature of the nodes
+    :return: the graph where the protected attribute is a feature of the nodes and a the attribute as a dictionary
     """
 
     if sizes is None:
@@ -69,7 +69,7 @@ def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random
     dict_s = {i: protS[i] for i in range(0, len(protS))}
     nx.set_node_attributes(g, dict_s, 's')
 
-    return g
+    return g, dict_s
 
 
 def shuffle_part(protS, prop_shuffle=0.1):
@@ -282,32 +282,44 @@ def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10):
     return emb_x, new_s
 
 
-def load_graph(G,file_str,name): # REQUIRED FOR VERSE
+def load_graph(G, file_str, name):
+    """
+    This function is required for Verse
+    """
+
     G_2 = G.copy()
     G_2.name = name
 #     try:
 #         with open(edgefile): pass
 #     except:
-    nx.write_edgelist(G, file_str,data=False)
+    nx.write_edgelist(G, file_str, data=False)
     G_2.graph['edgelist'] = file_str
     G_2.graph['bcsr'] = './verse_input/' + G_2.name + '.bcsr'
     G_2.graph['verse.output'] = './verse_output/' + G_2.name + '.bin'
     try:
-        with open(G_2.graph['bcsr']): pass
+        with open(G_2.graph['bcsr']):
+            pass
     except:
         os.system('python ../verse-master/python/convert.py ' + G_2.graph['edgelist'] + ' ' + G_2.graph['bcsr'])
+
     return G_2
 
-def Verse(g,file_str,name):
-    G = load_graph(g, file_str,name)
-    orders = "../verse-master/src/verse -input " + G.graph['bcsr'] + " -output " + G.graph['verse.output']+ " -dim 32"+" -alpha 0.85"
+
+def Verse(g, file_str, name):
+    G = load_graph(g, file_str, name)
+    orders = "../verse-master/src/verse -input " + G.graph['bcsr'] + " -output " + G.graph['verse.output'] + \
+             " -dim 32"+" -alpha 0.85"
     os.system(orders)
     verse_embeddings = np.fromfile(G.graph['verse.output'],np.float32).reshape(g.number_of_nodes(), 32)
 
     return verse_embeddings
 
+
 def read_emb(file_to_read):
-    #read embedding file where first line is number of nodes, dimension of embedding and next lines are node_id, embedding vector
+
+    # read embedding file where first line is number of nodes, dimension of embedding and next lines are node_id,
+    # embedding vector
+
     with open(file_to_read, 'r') as f:
         number_of_nodes, dimension = f.readline().split()
         number_of_nodes = int(number_of_nodes)
@@ -318,42 +330,12 @@ def read_emb(file_to_read):
             Y[int(line[0])] = [float(line[j]) for j in range(1, dimension+1)]
     return Y
 
-def fairwalk(input_edgelist,output_emb_file,dict_file):
+
+def fairwalk(input_edgelist, output_emb_file, dict_file):
     #compute node2vec embedding
-    orders = 'python ./fairwalk/src/main.py'+' --input '+input_edgelist+' --output '+'./fairwalk/emb/'+output_emb_file+' --sensitive_attr '+dict_file+' --dimension 32'
+    orders = 'python ./fairwalk/src/main.py'+' --input '+input_edgelist+' --output '+'./fairwalk/emb/'\
+             + output_emb_file + ' --sensitive_attr ' + dict_file + ' --dimension 32'
     os.system(orders)
     #print('DONE!')
     embeddings = read_emb('./fairwalk/emb/'+output_emb_file)
     return embeddings
-
-def getGraph_fairwalk(sizes=[150, 150], probs=[[0.15, 0.005], [0.005, 0.15]], seed=0, choice='random'):
-
-    # Generate a graph
-    g = nx.stochastic_block_model(sizes, probs, seed=seed)
-    #print(g.nodes())
-    adj_matrix = nx.adjacency_matrix(g)
-    if not nx.is_connected(g):
-        print('Graph is not connected')
-    # Protected attribute
-    n = np.sum(sizes)
-    protS = np.zeros(n)
-    np.random.seed(seed)
-    if choice == 'random':
-        protS = np.random.choice([0, 1], size=(n,), p=[1./2, 1./2])
-    elif choice == 'partition':
-        #dict_s = {i: protS[i] for i in range(0, len(protS))}
-        #nx.set_node_attributes(g, dict_s, 's')
-        part_idx = g.graph['partition']
-        for i in range(len(part_idx)):
-            protS[list(part_idx[i])] = i
-        # Shuffle 20% of the protected attributes
-        protS = shuffle_part(protS, prop_shuffle=0.2)
-        if np.asarray(probs).shape[0] > 2:
-            idx_mix = np.where(protS == 2)[0]
-            _temp = np.random.choice([0, 1], size=(len (idx_mix),), p=[1./2, 1./2])
-            i = 0
-            for el in idx_mix:
-                protS[el] = _temp[i]
-                i += 1
-    dict_s = {i: protS[i] for i in range(0, len(protS))}
-    return g, adj_matrix, protS, dict_s
