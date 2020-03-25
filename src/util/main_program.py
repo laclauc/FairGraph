@@ -32,19 +32,23 @@ def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random
     g = nx.stochastic_block_model(sizes, probs)
 
     # Check if the graph is connected
-    if not nx.is_connected(g):
-        print('Graph is not connected')
-        g = nx.stochastic_block_model(sizes, probs)
+    is_connected = nx.is_connected(g)
+    while not is_connected:
+        try:
+            g = nx.stochastic_block_model(sizes, probs)
+            is_connected = nx.is_connected(g)
+        except:
+            pass
 
     # Protected attribute
     n = np.sum(sizes)
     protS = np.zeros(n)
-    g = np.asarray(probs).shape[0]
-    p = np.ones(g)
+    k = np.asarray(probs).shape[0]
+    p = np.ones(k)
 
     if choice == 'random':
         if number_class == 'multi':
-            protS = np.random.choice(g, n, p=p*1/g)
+            protS = np.random.choice(k, n, p=p*1/k)
         elif number_class == 'binary':
             protS = np.random.choice(2, n, p=p*1/2)
 
@@ -98,10 +102,9 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     :return: the repaired graph, the transportation plan, the cost matrix
     """
 
-    global M
     x = nx.adjacency_matrix(g)
     s = nx.get_node_attributes(g, 's')
-
+    s = np.fromiter(s.values(), dtype=int)
     otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard', 'mahalanobis', 'matching', 'seuclidean',
                'sqeuclidean', ]
 
@@ -252,7 +255,7 @@ def visuTSNE(X, protS, k=2, seed=0, plotName='tsne_visu'):
     x_coords = Y[:, 0]
     y_coords = Y[:, 1]
 
-    fig, ax = plt.subplots ()
+    fig, ax = plt.subplots()
     for g in np.unique(protS):
         i = np.where(protS == g)
         ax.scatter(x_coords[i], y_coords[i], label=g)
