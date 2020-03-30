@@ -10,6 +10,7 @@
       <w>hadamard</w>
       <w>jaccard</w>
       <w>kfold</w>
+      <w>laplacian</w>
       <w>lbfgs</w>
       <w>mahalanobis</w>
       <w>matplotlib</w>
@@ -21,6 +22,7 @@
       <w>sinkhorn</w>
       <w>sqeuclidean</w>
       <w>steelblue</w>
+      <w>traj</w>
       <w>tsne</w>
       <w>tups</w>
       <w>visu</w>

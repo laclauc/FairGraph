@@ -42,7 +42,7 @@ for i in range(trial):
     print("Starting trial " + str(i))
     # Generate the graph
     g, s = get_graph_prot(sizes=sizes, probs=probs, choice=method)
-    s = np.fromiter (s.values (), dtype=int)
+    s = np.fromiter(s.values(), dtype=int)
     if log == 'True':
         prot0 = np.where(s == 0)[0]
         prot1 = np.where(s == 1)[0]

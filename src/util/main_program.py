@@ -1,14 +1,14 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import ot
 from scipy.sparse import issparse
 import networkx as nx
 from sklearn.manifold import TSNE
 from node2vec import Node2Vec
+from util.ot_laplacian import *
 import os
 
 
-def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random', shuffle=0.2):
+def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random', shuffle=0.1):
     """
      Generate a graph with a community structure, and where the nodes are assigned a protected attribute
     :param sizes:  number of nodes in each protected group
@@ -168,11 +168,12 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     return new_x, gamma, M
 
 
-def total_repair_sinkhorn(g, metric='euclidean', reg=0.01, case='bin', log=False,  name='plot_cost_gamma'):
+def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='bin', log=False,  name='plot_cost_gamma'):
     """
     Repairing of the graph with OT and the sinkhorn version
     :param g: a graph to repair. The protected attribute is a feature of the node
     :param metric: the distance metric for the cost matrix
+    :param method: xx
     :param reg : entropic regularisation term
     :param case: the new graph is by nature a weighed one. We can also binarize it according to a threshold ('bin')
     :param log: if true plot the cost matrix and the transportation plan
@@ -182,7 +183,7 @@ def total_repair_sinkhorn(g, metric='euclidean', reg=0.01, case='bin', log=False
 
     x = nx.adjacency_matrix(g)
     s = nx.get_node_attributes(g, 's')
-
+    s = np.fromiter(s.values(), dtype=int)
     otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard', 'mahalanobis', 'matching', 'seuclidean',
                'sqeuclidean', ]
 
@@ -202,12 +203,12 @@ def total_repair_sinkhorn(g, metric='euclidean', reg=0.01, case='bin', log=False
 
     # Compute barycenters using POT library
     # Uniform distributions on samples
-    a = np.ones((n0,))/n0
-    b = np.ones((n1,))/n1
+    a = np.ones((n0,)) / n0
+    b = np.ones((n1,)) / n1
 
     # loss matrix
     if metric in otdists:
-        M = np.asarray(ot.dist(x_0, x_1, metric=metric))
+        M = np.asarray (ot.dist(x_0, x_1, metric=metric))
     elif metric == 'simrank':
         sim = nx.simrank_similarity(g)
         m_sim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
@@ -215,7 +216,20 @@ def total_repair_sinkhorn(g, metric='euclidean', reg=0.01, case='bin', log=False
     M /= M.max()
 
     # Sinkhorn transport
-    gamma = ot.sinkhorn(a, b, M, reg)
+    if method == "sinkhorn":
+        gamma = ot.sinkhorn(a, b, M, reg)
+    elif method == 'laplace':
+        kwargs = {}
+        kwargs['sim'] = 'gauss'
+        kwargs['alpha'] = 0.5
+        gamma = compute_transport(x_0, x_1, method='laplace', metric='euclidean', weights='unif', reg=1,
+                                  solver=None, wparam=1, **kwargs)
+    elif method == 'laplace_traj':
+        kwargs = {}
+        kwargs['sim'] = 'gauss'
+        kwargs['alpha'] = 0.5
+        gamma = compute_transport(x_0, x_1, method='laplace_traj', metric='euclidean', weights='unif', reg=1,
+                                  solver=None, wparam=1, **kwargs)
 
     # Total data repair
     pi_0 = n0 / (n0+n1)
@@ -229,7 +243,7 @@ def total_repair_sinkhorn(g, metric='euclidean', reg=0.01, case='bin', log=False
     new_x[idx_p1, :] = x_1_rep
 
     if case == 'bin':
-        new_x[np.where(new_x < np.quantile(new_x, 0.4)) == 0]
+        new_x[np.where(new_x < np.quantile(new_x, 0.5)) == 0]
 
     if log:
         plt.imshow(gamma)
