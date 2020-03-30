@@ -20,10 +20,11 @@ node_list = list(g.nodes(data='value'))
 
 # Attribute as a dictionary
 tups = node_list
-dictionary = {}
-s = convert(tups, dictionary)
+s = convert(tups)
 s_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
+
+nx.set_node_attributes(g, s, 's')
 
 print("Repairing the graph with the laplacian regularisation")
 new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=1, case='bin', log=False,
@@ -37,6 +38,5 @@ with open('polblogs_rep_laplace_1.pkl', 'wb') as outfile:
 print("Learning embedding")
 new_g_l = nx.from_numpy_matrix(new_x_l)
 
-
-emb_x, new_s = emb_node2vec(new_g_l, s, filename="")
+emb_x, new_s = emb_node2vec(new_g_l, s, filename="model_laplace")
 

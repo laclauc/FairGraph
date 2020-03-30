@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import ot
-import numpy as np
 from scipy.sparse import issparse
 import networkx as nx
 from sklearn.manifold import TSNE
@@ -90,6 +89,24 @@ def shuffle_part(protS, prop_shuffle=0.1):
     np.random.shuffle(protS_shuffle)
     protS[ix] = protS_shuffle
     return protS
+
+
+def repair_random(g):
+    """
+    Repairing of the graph by adding random links between nodes of two different groups
+    :param g: the graph
+    :return: the new graph
+    """
+    x = nx.adjacency_matrix(g)
+    s = nx.get_node_attributes(g, 's')
+    s = np.fromiter(s.values(), dtype=int)
+
+    # Separate rows adjacency matrix based on the protected attribute
+    idx_p0 = np.where(s == 0)
+    idx_p1 = np.where(s == 1)
+
+    x_0 = x[idx_p0, idx_p1]
+    idx_zeros = np.argwhere(x_0 == 0)
 
 
 def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='plot_cost_gamma'):
@@ -301,35 +318,35 @@ def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10, f
     return emb_x, new_s
 
 
-def load_graph(G, file_str, name):
+def load_graph(g, file_str, name):
     """
     This function is required for Verse
     """
 
-    G_2 = G.copy()
-    G_2.name = name
+    g_2 = g.copy()
+    g_2.name = name
 #     try:
 #         with open(edgefile): pass
 #     except:
-    nx.write_edgelist(G, file_str, data=False)
-    G_2.graph['edgelist'] = file_str
-    G_2.graph['bcsr'] = './verse_input/' + G_2.name + '.bcsr'
-    G_2.graph['verse.output'] = './verse_output/' + G_2.name + '.bin'
+    nx.write_edgelist(g, file_str, data=False)
+    g_2.graph['edgelist'] = file_str
+    g_2.graph['bcsr'] = './verse_input/' + g_2.name + '.bcsr'
+    g_2.graph['verse.output'] = './verse_output/' + g_2.name + '.bin'
     try:
-        with open(G_2.graph['bcsr']):
+        with open(g_2.graph['bcsr']):
             pass
     except:
-        os.system('python ../verse-master/python/convert.py ' + G_2.graph['edgelist'] + ' ' + G_2.graph['bcsr'])
+        os.system('python ../verse-master/python/convert.py ' + g_2.graph['edgelist'] + ' ' + g_2.graph['bcsr'])
 
-    return G_2
+    return g_2
 
 
 def Verse(g, file_str, name):
-    G = load_graph(g, file_str, name)
-    orders = "../verse-master/src/verse -input " + G.graph['bcsr'] + " -output " + G.graph['verse.output'] + \
+    g = load_graph(g, file_str, name)
+    orders = "../verse-master/src/verse -input " + g.graph['bcsr'] + " -output " + g.graph['verse.output'] + \
              " -dim 32"+" -alpha 0.85"
     os.system(orders)
-    verse_embeddings = np.fromfile(G.graph['verse.output'],np.float32).reshape(g.number_of_nodes(), 32)
+    verse_embeddings = np.fromfile(g.graph['verse.output'], np.float32).reshape(g.number_of_nodes(), 32)
 
     return verse_embeddings
 
@@ -351,10 +368,11 @@ def read_emb(file_to_read):
 
 
 def fairwalk(input_edgelist, output_emb_file, dict_file):
-    #compute node2vec embedding
+
+    # compute node2vec embedding
     orders = 'python ./fairwalk/src/main.py'+' --input '+input_edgelist+' --output '+'./fairwalk/emb/'\
              + output_emb_file + ' --sensitive_attr ' + dict_file + ' --dimension 32'
     os.system(orders)
-    #print('DONE!')
+    # print('DONE!')
     embeddings = read_emb('./fairwalk/emb/'+output_emb_file)
     return embeddings
