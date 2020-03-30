@@ -222,13 +222,13 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='b
         kwargs = {}
         kwargs['sim'] = 'gauss'
         kwargs['alpha'] = 0.5
-        gamma = compute_transport(x_0, x_1, method='laplace', metric='euclidean', weights='unif', reg=1,
+        gamma = compute_transport(x_0, x_1, method='laplace', metric='euclidean', weights='unif', reg=reg,
                                   solver=None, wparam=1, **kwargs)
     elif method == 'laplace_traj':
         kwargs = {}
         kwargs['sim'] = 'gauss'
         kwargs['alpha'] = 0.5
-        gamma = compute_transport(x_0, x_1, method='laplace_traj', metric='euclidean', weights='unif', reg=1,
+        gamma = compute_transport(x_0, x_1, method='laplace_traj', metric='euclidean', weights='unif', reg=reg,
                                   solver=None, wparam=1, **kwargs)
 
     # Total data repair

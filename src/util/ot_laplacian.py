@@ -10,6 +10,8 @@ from sklearn.neighbors import kneighbors_graph as kn_graph
 from scipy.spatial.distance import cdist, pdist
 import scipy.optimize.linesearch  as ln
 from cvxopt import matrix, spmatrix, solvers, printing
+from functools import reduce
+from importlib import reload
 
 #import optim.fminsvn as fsvm
 
@@ -458,7 +460,8 @@ def computeTransportLP(distribS,distribT, distances,solver=None):
     p1p2 = np.concatenate((distribS,distribT))
     p1p2 = p1p2[0:-1]
     # generate cost matrix
-    costMatrix = distances.flatten()
+    costMatrix = np.asarray(distances.flatten())
+    costMatrix = costMatrix.reshape((Nini*Nfin,))
 
     # express the constraints matrix
     I = []
@@ -476,6 +479,9 @@ def computeTransportLP(distribS,distribT, distances,solver=None):
 
     # positivity condition
     G = spmatrix(-1.0,range(Nini*Nfin),range(Nini*Nfin))
+
+    #if type(costMatrix) is not matrix or costMatrix.typecode != 'd' or costMatrix.size[1] != 1:
+    #    costMatrix = matrix(costMatrix, (len(costMatrix), 1), 'd')
 
     sol = solvers.lp(matrix(costMatrix),G,matrix(np.zeros(Nini*Nfin)),A,matrix(p1p2),solver=solver)
     S = np.array(sol['x'])
