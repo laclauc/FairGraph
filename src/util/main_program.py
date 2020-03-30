@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import ot
+import numpy as np
 from scipy.sparse import issparse
 import networkx as nx
 from sklearn.manifold import TSNE
@@ -278,7 +279,7 @@ def visuTSNE(X, protS, k=2, seed=0, plotName='tsne_visu'):
     plt.show()
 
 
-def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10):
+def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10, filename='node2vec'):
     """
     Compute the node embedding using Node2Vec
     :param g: a graph
@@ -287,6 +288,7 @@ def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10):
     :param walk_length: length of the random walk
     :param num_walks: number of walks
     :param window: window
+    :param filename: name of the file containing the node2vec model
     :return: the embedding matrix and the associate protected attribute
     """
 
@@ -295,7 +297,7 @@ def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10):
     idx = list(map(int, model.wv.index2word))
     emb_x = model.wv.vectors
     new_s = s[idx]
-
+    model.save(filename)
     return emb_x, new_s
 
 

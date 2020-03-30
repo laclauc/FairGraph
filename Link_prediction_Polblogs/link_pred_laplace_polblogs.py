@@ -1,6 +1,6 @@
-from OTAdjacency import *
 from src.util.link_prediction import *
 import networkx as nx
+from src.util.main_program import *
 import pickle as pkl
 from sklearn.linear_model import LogisticRegression
 from sklearn import model_selection
@@ -25,9 +25,18 @@ s = convert(tups, dictionary)
 s_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
 
-print("Repairing the graph")
+print("Repairing the graph with the laplacian regularisation")
+new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=1, case='bin', log=False,
+                                       name='plot_cost_gamma')
+
+data = [new_x_l, s]
+with open('polblogs_rep_laplace_1.pkl', 'wb') as outfile:
+    pkl.dump(data, outfile, pkl.HIGHEST_PROTOCOL)
 
 
 print("Learning embedding")
+new_g_l = nx.from_numpy_matrix(new_x_l)
 
+
+emb_x, new_s = emb_node2vec(new_g_l, s, filename="")
 

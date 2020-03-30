@@ -19,19 +19,19 @@ g, s = get_graph_prot(sizes=sizes, probs=probs, choice=method, shuffle=0)
 # Laplacian
 
 new_x, gamma, M = total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='plot_cost_gamma')
-new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=1, case='bin', log=False,
+new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=10, case='bin', log=False,
                                        name='plot_cost_gamma')
+new_x_traj, s_traj, gamma_traj, M_traj = total_repair_reg(g, metric='euclidean', method="laplace_traj",
+                                                     reg=10, case='bin', log=False, name='plot_cost_gamma')
+
 
 new_g = nx.from_numpy_matrix(new_x)
 new_g_l = nx.from_numpy_matrix(new_x_l)
+new_g_l_traj = nx.from_numpy_matrix(new_x_traj)
 
-graphs = [g, new_g, new_g_l]
+titles = ['Original', 'OT repair', 'Laplacian repair', 'Ferradans repair']
 
-# Trajectory laplacian
-
-#new_x_traj, s_traj, gamma_traj, M_traj = total_repair_reg(g, metric='euclidean', method="laplace_traj",
-#                                                     reg=0.01, case='bin', log=False, name='plot_cost_gamma')
-#new_g_traj = nx.from_numpy_matrix(new_x_traj)
+graphs = [g, new_g, new_g_l, new_g_l_traj]
 
 # Plot the networks
 """
@@ -79,6 +79,7 @@ for j,t in enumerate(tsnes):
     k = 0
     ax[j].tick_params(axis='both', which='both', bottom='off', top='off', labelbottom='off', right='off', left='off',
                      labelleft='off')
+    ax[j].set_title(titles[j])
 
 """
 for g in np.unique(s_repair):
