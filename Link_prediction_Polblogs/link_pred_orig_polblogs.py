@@ -1,40 +1,38 @@
 from OTAdjacency import *
+from src.util.link_prediction import *
 import networkx as nx
 import pickle as pkl
 from sklearn.linear_model import LogisticRegression
 from sklearn import model_selection
 import collections
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import precision_recall_curve
-from matplotlib import pyplot
-from sklearn.metrics import roc_auc_score, roc_curve, f1_score,auc
-import random
+from sklearn.metrics import roc_auc_score
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 from gensim.models import Word2Vec
 
-def Convert(tup, di):
-    di = dict(tup)
-    return di
 
-def hadamard(model,data,link_info,protS):
-    hadamard_links = [] #absolute_diff = [] #absolute diff between sensitive attributes
-    for i in range(len(data)):
-        had_pro = np.multiply(model.wv[data[i][0]],model.wv[data[i][1]])  # hadamard product
-        absolute_diff = abs(protS[data[i][0]]-protS[data[i][1]])
-        hadamard_links.append((had_pro,absolute_diff,link_info[i]))
-    return hadamard_links
+# Load the graph and the protected attribute
+_temp = nx.read_gml("polblogs/polblogs.gml")
+g = _temp.to_undirected(reciprocal=False, as_view=False)
+g.remove_nodes_from(list(nx.isolates(g)))
+node_list = list(g.nodes(data='value'))
 
-def get_tups_data(hadamard_data):
-    vectors_and_abs_val=[]
-    links=[]
-    for i in hadamard_data:
-        vectors_and_abs_val.append((i[0],i[1]))
-        links.append(i[2])
-    return vectors_and_abs_val,links
+# Attribute as a dictionary
+tups = node_list
+dictionary = {}
+s = convert(tups, dictionary)
+s_arr = np.array([x[1] for x in tups])
+adj_g = nx.adjacency_matrix(g)
 
-# Pretrained node2vec on original polblogs data
-model = Word2Vec.load("polblog_n2v.model")
+
+
+
+
+"""
+
+#print("Loading models and graph")
+#model = Word2Vec.load("polblog_n2v.model")
 
 # loading graph and saving protected atrribute info for each node in protS
 d = nx.read_gml("polblogs/polblogs.gml")
@@ -52,15 +50,14 @@ node_list = list(g.nodes(data='value'))
 tups = node_list
 dictionary = {}
 protS = Convert(tups, dictionary)
-#print(protS)
 prot_arr= np.array([x[1] for x in tups])
-#print(prot_arr)
 adj_g = nx.adjacency_matrix(g)
 
+print("Loading train and test data")
 # Polblogs train-test dataset 
 # train_edges, test_edges: are the pairs of nodes (like we have in edgelist)
-train_edges  = pkl.load(open("train_edges_polblogs.p", "rb" ) )
-test_edges   = pkl.load(open("test_edges_polblogs.p", "rb" ) )
+train_edges = pkl.load(open("train_edges_polblogs.p", "rb" ) )
+test_edges  = pkl.load(open("test_edges_polblogs.p", "rb" ) )
 
 # train_links, test_links: are the labels for the above pair of nodes (1 if there exists an edge between them, 0 otherwise)
 train_links  = pkl.load(open("train_links_polblogs.p", "rb" ) )
@@ -68,7 +65,7 @@ test_links   = pkl.load(open("test_links_polblogs.p", "rb" ) )
 
 # train_data, test_data: hadamard returns tuple of (hadamard product, absolute_diff. between sensitive attribute,link_info: labels for edge present or not)
 train_data = hadamard(model,train_edges,train_links,protS)
-test_data  = hadamard(model,test_edges,test_links,protS)
+test_data = hadamard(model,test_edges,test_links,protS)
 
 # data preparation for link-prediction using Logistic Regression
 train_tup,trainy = get_tups_data(train_data)
@@ -77,6 +74,7 @@ test_tup,testy = get_tups_data(test_data)
 trainX, abs_diff_train = map(list,zip(*train_tup))
 testX, abs_diff_test = map(list,zip(*test_tup))
 
+print("fitting logistic regression")
 
 # fit a model
 model_LR = LogisticRegression(solver='lbfgs')
@@ -121,3 +119,4 @@ print('same_party_count: ', same_party_count)
 print('opp_party_count: ', opp_party_count)
 
 print('Disparate Impact: ', opp_party_count/same_party_count)
+"""
