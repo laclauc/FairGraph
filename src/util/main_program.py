@@ -6,6 +6,7 @@ from sklearn.manifold import TSNE
 from node2vec import Node2Vec
 from util.ot_laplacian import *
 import os
+import numpy as np
 
 
 def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random', shuffle=0.1):
@@ -102,11 +103,16 @@ def repair_random(g):
     s = np.fromiter(s.values(), dtype=int)
 
     # Separate rows adjacency matrix based on the protected attribute
-    idx_p0 = np.where(s == 0)
-    idx_p1 = np.where(s == 1)
+    idx_p0 = np.where(s == 0)[0]
+    idx_p1 = np.where(s == 1)[0]
 
-    x_0 = x[idx_p0, idx_p1]
-    idx_zeros = np.argwhere(x_0 == 0)
+    x_random = np.copy(x.todense())
+
+    for i,j in zip(idx_p0,idx_p1):
+        if x[i,j] == 0:
+            x_random[i,j] = np.round(np.random.rand())
+
+    return x_random
 
 
 def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='plot_cost_gamma'):
@@ -376,3 +382,5 @@ def fairwalk(input_edgelist, output_emb_file, dict_file):
     # print('DONE!')
     embeddings = read_emb('./fairwalk/emb/'+output_emb_file)
     return embeddings
+
+
