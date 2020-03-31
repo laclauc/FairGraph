@@ -43,7 +43,7 @@ def transform_str_to_int(orig_node_list, edges):
     return edges
 
 # Pretrained node2vec on repaired polblogs data
-model = Word2Vec.load('repaired_n2v_polblog.model')
+model = Word2Vec.load('data/repaired_n2v_polblog.model')
 
 # loading graph and saving protected atrribute info for each node in protS
 d = nx.read_gml("polblogs/polblogs.gml")
@@ -76,12 +76,12 @@ new_S = [protS_int[int(i)] for i in idx]
 
 # Polblogs train-test dataset 
 # train_edges, test_edges: are the pairs of nodes (like we have in edgelist)
-train_edges  = pkl.load(open("train_edges_polblogs.p", "rb" ) )
-test_edges   = pkl.load(open("test_edges_polblogs.p", "rb" ) )
+train_edges = pkl.load(open("data/train_edges_polblogs.p", "rb" ) )
+test_edges = pkl.load(open("data/test_edges_polblogs.p", "rb" ) )
 
 # train_links, test_links: are the labels for the above pair of nodes (1 if there exists an edge between them, 0 otherwise)
-train_links  = pkl.load(open("train_links_polblogs.p", "rb" ) )
-test_links   = pkl.load(open("test_links_polblogs.p", "rb" ) )
+train_links = pkl.load(open("data/train_links_polblogs.p", "rb" ) )
+test_links = pkl.load(open("data/test_links_polblogs.p", "rb" ) )
 
 # transform from node name to node id
 train_edges_tr = transform_str_to_int(node_list,train_edges)

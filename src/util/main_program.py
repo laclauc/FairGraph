@@ -35,61 +35,58 @@ def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random
     # Check if the graph is connected
     is_connected = nx.is_connected(g)
     while not is_connected:
-        try:
-            g = nx.stochastic_block_model(sizes, probs)
-            is_connected = nx.is_connected(g)
-        except:
-            pass
+        g = nx.stochastic_block_model(sizes, probs)
+        is_connected = nx.is_connected(g)
 
     # Protected attribute
     n = np.sum(sizes)
-    protS = np.zeros(n)
+    prot_s = np.zeros(n)
     k = np.asarray(probs).shape[0]
     p = np.ones(k)
 
     if choice == 'random':
         if number_class == 'multi':
-            protS = np.random.choice(k, n, p=p*1/k)
+            prot_s = np.random.choice(k, n, p=p*1/k)
         elif number_class == 'binary':
-            protS = np.random.choice(2, n, p=p*1/2)
+            prot_s = np.random.choice(2, n, p=p*1/2)
 
     elif choice == 'partition':
         part_idx = g.graph['partition']
         for i in range(len(part_idx)):
-            protS[list(part_idx[i])] = i
+            prot_s[list(part_idx[i])] = i
 
         # Shuffle x% of the protected attributes to change the degree of dependence
-        protS = shuffle_part(protS, prop_shuffle=shuffle)
+        prot_s = shuffle_part(prot_s, prop_shuffle=shuffle)
 
         # Handle the case when S is binary but the partition >2
         if (np.asarray(probs).shape[0] > 2) & (number_class == 'binary'):
-            idx_mix = np.where(protS == 2)[0]
+            idx_mix = np.where(prot_s == 2)[0]
             _temp = np.random.choice([0, 1], size=(len(idx_mix),), p=[1./2, 1./2])
             i = 0
             for el in idx_mix:
-                protS[el] = _temp[i]
+                prot_s[el] = _temp[i]
                 i += 1
 
     # Assign the attribute as a feature of the nodes directly in the graph
-    dict_s = {i: protS[i] for i in range(0, len(protS))}
+    dict_s = {i: prot_s[i] for i in range(0, len(prot_s))}
     nx.set_node_attributes(g, dict_s, 's')
 
     return g, dict_s
 
 
-def shuffle_part(protS, prop_shuffle=0.1):
+def shuffle_part(prot_s, prop_shuffle=0.1):
     """
     Randomly shuffle some of the protected attributes
-    :param protS: the vector to shuffle
+    :param prot_s: the vector to shuffle
     :param prop_shuffle: the proportion of label to shuffle
     :return: the shuffled vector
     """
     prop_shuffle = prop_shuffle
-    ix = np.random.choice([True, False], size=protS.size, replace=True, p=[prop_shuffle, 1 - prop_shuffle])
-    protS_shuffle = protS[ix]
-    np.random.shuffle(protS_shuffle)
-    protS[ix] = protS_shuffle
-    return protS
+    ix = np.random.choice([True, False], size=prot_s.size, replace=True, p=[prop_shuffle, 1 - prop_shuffle])
+    prot_s_shuffle = prot_s[ix]
+    np.random.shuffle(prot_s_shuffle)
+    prot_s[ix] = prot_s_shuffle
+    return prot_s
 
 
 def repair_random(g):
@@ -100,19 +97,26 @@ def repair_random(g):
     """
     x = nx.adjacency_matrix(g)
     s = nx.get_node_attributes(g, 's')
-    s = np.fromiter(s.values(), dtype=int)
+    s_arr = np.fromiter(s.values(), dtype=int)
 
     # Separate rows adjacency matrix based on the protected attribute
-    idx_p0 = np.where(s == 0)[0]
-    idx_p1 = np.where(s == 1)[0]
+    idx_p0 = np.where(s_arr == 0)[0]
+    idx_p1 = np.where(s_arr == 1)[0]
 
     x_random = np.copy(x.todense())
 
-    for i,j in zip(idx_p0,idx_p1):
-        if x[i,j] == 0:
-            x_random[i,j] = np.round(np.random.rand())
+    for i in idx_p0:
+        for j in idx_p1:
+            if x[i, j] == 0:
+                x_random[i, j] = np.random.choice([0, 1], p=[0.8, 0.2])
+                x_random[j, i] = x_random[i, j]
 
-    return x_random
+    new_g = nx.from_numpy_matrix(x_random)
+    nx.set_node_attributes(new_g, s, 's')
+    print(nx.density(g))
+    print(nx.density(new_g))
+
+    return new_g
 
 
 def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='plot_cost_gamma'):
@@ -153,16 +157,16 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
 
     # loss matrix
     if metric in otdists:
-        M = np.asarray(ot.dist(x_0, x_1, metric=metric))
+        m = np.asarray(ot.dist(x_0, x_1, metric=metric))
     elif metric == 'simrank':
         sim = nx.simrank_similarity(g)
         m_sim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
-        M = np.asarray(m_sim)
-    M /= M.max()
+        m = np.asarray(m_sim)
+    m /= m.max()
 
     # Exact transport
 
-    gamma = ot.emd(a, b, M)
+    gamma = ot.emd(a, b, m)
 
     # Total data repair
     pi_0 = n0 / (n0+n1)
@@ -184,12 +188,12 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
         plt.show()
         plt.savefig('gamma_' + name + '.png')
 
-        plt.imshow(M)
+        plt.imshow(m)
         plt.colorbar()
         plt.show()
         plt.savefig('costMatrix_' + name + '.png')
 
-    return new_x, gamma, M
+    return new_x, gamma, m
 
 
 def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='bin', log=False,  name='plot_cost_gamma'):
@@ -232,26 +236,22 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='b
 
     # loss matrix
     if metric in otdists:
-        M = np.asarray (ot.dist(x_0, x_1, metric=metric))
+        m = np.asarray(ot.dist(x_0, x_1, metric=metric))
     elif metric == 'simrank':
         sim = nx.simrank_similarity(g)
         m_sim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
-        M = np.asarray(m_sim)
-    M /= M.max()
+        m = np.asarray(m_sim)
+    m /= m.max()
 
     # Sinkhorn transport
     if method == "sinkhorn":
-        gamma = ot.sinkhorn(a, b, M, reg)
+        gamma = ot.sinkhorn(a, b, m, reg)
     elif method == 'laplace':
-        kwargs = {}
-        kwargs['sim'] = 'gauss'
-        kwargs['alpha'] = 0.5
+        kwargs = {'sim': 'gauss', 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace', metric='euclidean', weights='unif', reg=reg,
                                   solver=None, wparam=1, **kwargs)
     elif method == 'laplace_traj':
-        kwargs = {}
-        kwargs['sim'] = 'gauss'
-        kwargs['alpha'] = 0.5
+        kwargs = {'sim': 'gauss', 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace_traj', metric='euclidean', weights='unif', reg=reg,
                                   solver=None, wparam=1, **kwargs)
 
@@ -275,12 +275,12 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='b
         plt.show()
         plt.savefig('gamma_' + name + '.png')
 
-        plt.imshow(M)
+        plt.imshow(m)
         plt.colorbar()
         plt.show()
         plt.savefig('costMatrix_' + name + '.png')
 
-    return new_x, s, gamma, M
+    return new_x, s, gamma, m
 
 
 def visuTSNE(X, protS, k=2, seed=0, plotName='tsne_visu'):
@@ -321,7 +321,7 @@ def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10, f
     emb_x = model.wv.vectors
     new_s = s[idx]
     model.save(filename)
-    return emb_x, new_s
+    return emb_x, new_s, model
 
 
 def load_graph(g, file_str, name):
@@ -331,9 +331,6 @@ def load_graph(g, file_str, name):
 
     g_2 = g.copy()
     g_2.name = name
-#     try:
-#         with open(edgefile): pass
-#     except:
     nx.write_edgelist(g, file_str, data=False)
     g_2.graph['edgelist'] = file_str
     g_2.graph['bcsr'] = './verse_input/' + g_2.name + '.bcsr'
@@ -347,7 +344,7 @@ def load_graph(g, file_str, name):
     return g_2
 
 
-def Verse(g, file_str, name):
+def verse(g, file_str, name):
     g = load_graph(g, file_str, name)
     orders = "../verse-master/src/verse -input " + g.graph['bcsr'] + " -output " + g.graph['verse.output'] + \
              " -dim 32"+" -alpha 0.85"
@@ -366,11 +363,11 @@ def read_emb(file_to_read):
         number_of_nodes, dimension = f.readline().split()
         number_of_nodes = int(number_of_nodes)
         dimension = int(dimension)
-        Y = [[0 for i in range(dimension)] for j in range(number_of_nodes)]
+        y = [[0 for i in range(dimension)] for j in range(number_of_nodes)]
         for i, line in enumerate(f):
             line = line.split()
-            Y[int(line[0])] = [float(line[j]) for j in range(1, dimension+1)]
-    return Y
+            y[int(line[0])] = [float(line[j]) for j in range(1, dimension+1)]
+    return y
 
 
 def fairwalk(input_edgelist, output_emb_file, dict_file):
