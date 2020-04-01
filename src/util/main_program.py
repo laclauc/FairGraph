@@ -46,9 +46,9 @@ def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random
 
     if choice == 'random':
         if number_class == 'multi':
-            prot_s = np.random.choice(k, n, p=p*1/k)
+            prot_s = np.random.choice(k, n, p=p * 1 / k)
         elif number_class == 'binary':
-            prot_s = np.random.choice(2, n, p=p*1/2)
+            prot_s = np.random.choice(2, n, p=p * 1 / 2)
 
     elif choice == 'partition':
         part_idx = g.graph['partition']
@@ -61,7 +61,7 @@ def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random
         # Handle the case when S is binary but the partition >2
         if (np.asarray(probs).shape[0] > 2) & (number_class == 'binary'):
             idx_mix = np.where(prot_s == 2)[0]
-            _temp = np.random.choice([0, 1], size=(len(idx_mix),), p=[1./2, 1./2])
+            _temp = np.random.choice([0, 1], size=(len(idx_mix),), p=[1. / 2, 1. / 2])
             i = 0
             for el in idx_mix:
                 prot_s[el] = _temp[i]
@@ -96,8 +96,8 @@ def repair_random(g, s):
     :return: the new graph
     """
     x = nx.adjacency_matrix(g)
-    #s = nx.get_node_attributes(g, 's')
-    #s_arr = np.fromiter(s.values(), dtype=int)
+    # s = nx.get_node_attributes(g, 's')
+    # s_arr = np.fromiter(s.values(), dtype=int)
     s_arr = s
     # Separate rows adjacency matrix based on the protected attribute
     idx_p0 = np.where(s_arr == 0)[0]
@@ -152,8 +152,8 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
 
     # Compute barycenters using POT library
     # Uniform distributions on samples
-    a = np.ones((n0,))/n0
-    b = np.ones((n1,))/n1
+    a = np.ones((n0,)) / n0
+    b = np.ones((n1,)) / n1
 
     # loss matrix
     if metric in otdists:
@@ -169,7 +169,7 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     gamma = ot.emd(a, b, m)
 
     # Total data repair
-    pi_0 = n0 / (n0+n1)
+    pi_0 = n0 / (n0 + n1)
     pi_1 = 1 - pi_0
 
     x_0_rep = pi_0 * x_0 + n0 * pi_1 * np.dot(gamma, x_1)
@@ -196,7 +196,7 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     return new_x, gamma, m
 
 
-def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='bin', log=False,  name='plot_cost_gamma'):
+def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, eta = 1, case='bin', log=False, name='plot_cost_gamma'):
     """
     Repairing of the graph with OT and the sinkhorn version
     :param g: a graph to repair. The protected attribute is a feature of the node
@@ -246,8 +246,10 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='b
     # Sinkhorn transport
     if method == "sinkhorn":
         gamma = ot.sinkhorn(a, b, m, reg)
+
     elif method == 'laplace':
-        kwargs = {'sim': 'gauss', 'alpha': 0.5}
+        # kwargs = {'sim': 'gauss', 'alpha': 0.5}
+        kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace', metric='euclidean', weights='unif', reg=reg,
                                   solver=None, wparam=1, **kwargs)
     elif method == 'laplace_traj':
@@ -256,7 +258,7 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='b
                                   solver=None, wparam=1, **kwargs)
 
     # Total data repair
-    pi_0 = n0 / (n0+n1)
+    pi_0 = n0 / (n0 + n1)
     pi_1 = 1 - pi_0
 
     x_0_rep = pi_0 * x_0 + n0 * pi_1 * np.dot(gamma, x_1)
@@ -284,7 +286,6 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, case='b
 
 
 def visuTSNE(X, protS, k=2, seed=0, plotName='tsne_visu'):
-
     # display TSNE scatter plot
     tsne = TSNE(n_components=k, random_state=seed)
     np.set_printoptions(suppress=True)
@@ -298,7 +299,7 @@ def visuTSNE(X, protS, k=2, seed=0, plotName='tsne_visu'):
         i = np.where(protS == g)
         ax.scatter(x_coords[i], y_coords[i], label=g)
     ax.legend
-    plt.savefig(plotName+'.png')
+    plt.savefig(plotName + '.png')
     plt.show()
 
 
@@ -347,7 +348,7 @@ def load_graph(g, file_str, name):
 def verse(g, file_str, name):
     g = load_graph(g, file_str, name)
     orders = "../verse-master/src/verse -input " + g.graph['bcsr'] + " -output " + g.graph['verse.output'] + \
-             " -dim 32"+" -alpha 0.85"
+             " -dim 32" + " -alpha 0.85"
     os.system(orders)
     verse_embeddings = np.fromfile(g.graph['verse.output'], np.float32).reshape(g.number_of_nodes(), 32)
 
@@ -355,7 +356,6 @@ def verse(g, file_str, name):
 
 
 def read_emb(file_to_read):
-
     # read embedding file where first line is number of nodes, dimension of embedding and next lines are node_id,
     # embedding vector
 
@@ -366,18 +366,15 @@ def read_emb(file_to_read):
         y = [[0 for i in range(dimension)] for j in range(number_of_nodes)]
         for i, line in enumerate(f):
             line = line.split()
-            y[int(line[0])] = [float(line[j]) for j in range(1, dimension+1)]
+            y[int(line[0])] = [float(line[j]) for j in range(1, dimension + 1)]
     return y
 
 
 def fairwalk(input_edgelist, output_emb_file, dict_file):
-
     # compute node2vec embedding
-    orders = 'python ./fairwalk/src/main.py'+' --input '+input_edgelist+' --output '+'./fairwalk/emb/'\
+    orders = 'python ./fairwalk/src/main.py' + ' --input ' + input_edgelist + ' --output ' + './fairwalk/emb/' \
              + output_emb_file + ' --sensitive_attr ' + dict_file + ' --dimension 32'
     os.system(orders)
     # print('DONE!')
-    embeddings = read_emb('./fairwalk/emb/'+output_emb_file)
+    embeddings = read_emb('./fairwalk/emb/' + output_emb_file)
     return embeddings
-
-
