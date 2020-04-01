@@ -529,7 +529,7 @@ def computeTransportLaplacianSymmetric_fw_sinkhorn(distances, Ss, St, xs, xt, re
     niter = 1
     while True:
         old_transp = transp.copy()
-        G = regls * get_gradient1(Ls, xt, old_transp) + reglt * get_gradient2(Lt, xs, old_transp)
+        G = np.asarray(regls * get_gradient1(Ls, xt, old_transp) + reglt * get_gradient2(Lt, xs, old_transp))
         transp0 = ot.sinkhorn(distribS, distribT, distances + G, reg)
         E = transp0 - old_transp
 
@@ -537,9 +537,8 @@ def computeTransportLaplacianSymmetric_fw_sinkhorn(distances, Ss, St, xs, xt, re
         def f(tau):
             T = (1 - tau) * old_transp + tau * transp0
             # print np.sum(T*distances),-1./reg0*np.sum(T*np.log(T)),regls*quadloss1(T,Ls,xt),reglt*quadloss2(T,Lt,xs)
-            return np.sum(T * distances) + 1. / reg0 * np.sum(T * np.log(T)) + regls * quadloss1(T, Ls,
-                                                                                                 xt) + reglt * quadloss2(
-                T, Lt, xs)
+            return np.sum(T * distances) + 1. / reg0 * np.sum(T * np.log(T)) + \
+                   regls * quadloss1(T, Ls, xt) + reglt * quadloss2(T, Lt, xs)
 
         # compute f'(0)
         res = regls * (np.trace(np.dot(xt.T, np.dot(E.T, np.dot(Ls, np.dot(old_transp, xt))))) + \
@@ -594,7 +593,7 @@ def computeTransportLaplacianSymmetricTraj_fw(distances, Ss, St, xs, xt, reg=0, 
 
         old_transp = transp.copy()
 
-        G = regls * get_gradient1(Ls, xt, old_transp) + reglt * get_gradient2(Lt, xs, old_transp)
+        G = np.asarray(regls * get_gradient1(Ls, xt, old_transp) + reglt * get_gradient2(Lt, xs, old_transp))
 
         transp0 = ot.emd(distribS, distribT, Ctot + G)
 
@@ -603,10 +602,8 @@ def computeTransportLaplacianSymmetricTraj_fw(distances, Ss, St, xs, xt, reg=0, 
 
         if step == 'opt':
             # optimal step size !!!
-            num = -np.sum(E * Ctot) - np.sum(E * G)
-            q1 = quadloss1(E, Ls, xt)
-            q2 = quadloss2(E, Lt, xs)
-            tau = max(0, min(1, num / (2 * regls * q1 + 2 * reglt * q2)))
+            tau = max(0, min(1, (-np.sum(E * Ctot) - np.sum(E * G)) / (2 * regls * quadloss1(E, Ls, xt)
+                                                                       + 2 * reglt * quadloss2(E, Lt, xs))))
         else:
             # other step size just in case
             tau = 2. / (niter + 2)  # print "tau:",tau
@@ -625,7 +622,7 @@ def computeTransportLaplacianSymmetricTraj_fw(distances, Ss, St, xs, xt, reg=0, 
 
         niter += 1
 
-        if niter % 1 == 0:
+        if niter % 100 == 0:
             print('{:5s}|{:12s}'.format('It.', 'Err') + '\n' + '-' * 19)
             print('{:5d}|{:8e}|'.format(niter, err))
 

@@ -196,7 +196,7 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     return new_x, gamma, m
 
 
-def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, eta = 1, case='bin', log=False, name='plot_cost_gamma'):
+def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta = 1, case='bin', log=False, name='plot_cost_gamma'):
     """
     Repairing of the graph with OT and the sinkhorn version
     :param g: a graph to repair. The protected attribute is a feature of the node
@@ -241,7 +241,7 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, eta = 1
         sim = nx.simrank_similarity(g)
         m_sim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
         m = np.asarray(m_sim)
-    m /= m.max()
+    m = m/m.max()
 
     # Sinkhorn transport
     if method == "sinkhorn":
@@ -250,17 +250,18 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, eta = 1
     elif method == 'laplace':
         # kwargs = {'sim': 'gauss', 'alpha': 0.5}
         kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
-        gamma = compute_transport(x_0, x_1, method='laplace', metric='euclidean', weights='unif', reg=reg,
-                                  solver=None, wparam=1, **kwargs)
+        gamma = compute_transport(x_0, x_1, method='laplace', metric=metric, weights='unif', reg=reg,
+                                  nbitermax=1000, solver=None, wparam=1, **kwargs)
     elif method == 'laplace_sinkhorn':
-        # kwargs = {'sim': 'gauss', 'alpha': 0.5}
-        kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
-        gamma = compute_transport(x_0, x_1, method='laplace_sinkhorn', metric='euclidean', weights='unif', reg=reg,
-                                  eta= eta, solver=None, wparam=1, **kwargs)
+        kwargs = {'sim': 'gauss', 'alpha': 0.5}
+        #kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
+        gamma = compute_transport(x_0, x_1, method='laplace_sinkhorn', metric=metric, weights='unif', reg=reg,
+                                  nbitermax=1000, eta= eta, solver=None, wparam=1, **kwargs)
 
     elif method == 'laplace_traj':
-        kwargs = {'sim': 'gauss', 'alpha': 0.5}
-        gamma = compute_transport(x_0, x_1, method='laplace_traj', metric='euclidean', weights='unif', reg=reg,
+        #kwargs = {'sim': 'gauss', 'alpha': 0.5}
+        kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
+        gamma = compute_transport(x_0, x_1, method='laplace_traj', metric=metric, weights='unif', reg=reg,
                                   solver=None, wparam=1, **kwargs)
 
     # Total data repair
