@@ -162,7 +162,7 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
         sim = nx.simrank_similarity(g)
         m_sim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
         m = np.asarray(m_sim)
-    m = m/m.max()
+    m = np.asarray(m/m.max())
 
     # Exact transport
 
@@ -241,7 +241,7 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta =
         sim = nx.simrank_similarity(g)
         m_sim = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
         m = np.asarray(m_sim)
-    m = m/m.max()
+    m = np.asarray(m/m.max())
 
     # Sinkhorn transport
     if method == "sinkhorn":

@@ -164,7 +164,7 @@ def compute_transport(xs, xt, method='lp', metric='euclidean', weights='unif', r
     """
 
     # metric computation
-    M = ot.dist(xs, xt, metric)
+    M = np.asarray(ot.dist(xs, xt, metric))
 
     # compute weights
     if weights.lower() == 'precomputed':

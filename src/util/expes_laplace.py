@@ -10,7 +10,7 @@ probs = [[0.20, 0.005], [0.005, 0.10]]
 
 
 for size in [300]:
-    sizes = [size, size]
+    sizes = [size, size+100]
 
     print('Size: '+str(size))
     g, s = get_graph_prot(sizes=sizes, probs=probs, choice=method, shuffle=0)
