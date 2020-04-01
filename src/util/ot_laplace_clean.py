@@ -418,7 +418,7 @@ def computeTransportLaplacianSource_fw(distances, Ss, xs, xt, reg=0, regl=0, sol
     transp = ot.emd(distribS, distribT, distances)
     # transp=np.dot(distribS,distribT.T)
 
-    niter = 0;
+    niter = 0
     while loop:
 
         old_transp = transp.copy()
@@ -500,10 +500,9 @@ def computeTransportLaplacianSymmetric_fw(distances, Ss, St, xs, xt, reg=1e-9, r
 
         niter += 1
 
-        if niter % 2 == 0:
-            print(
-                '{:5s}|{:12s}'.format('It.', 'Err') + '\n' + '-' * 19)
-        print('{:5d}|{:8e}|'.format(niter, err))
+        if niter % 100 == 0:
+            print('{:5s}|{:12s}'.format('It.', 'Err') + '\n' + '-' * 19)
+            print('{:5d}|{:8e}|'.format(niter, err))
 
     # print "loss:",np.sum(transp*distances)+quadloss(transp,K)/2
 
