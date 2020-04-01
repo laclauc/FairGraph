@@ -4,7 +4,7 @@ from scipy.sparse import issparse
 import networkx as nx
 from sklearn.manifold import TSNE
 from node2vec import Node2Vec
-from util.ot_laplacian import *
+from util.ot_laplace_clean import *
 import os
 import numpy as np
 
@@ -252,6 +252,12 @@ def total_repair_reg(g, metric='euclidean', method="sinkhorn", reg=0.01, eta = 1
         kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace', metric='euclidean', weights='unif', reg=reg,
                                   solver=None, wparam=1, **kwargs)
+    elif method == 'laplace_sinkhorn':
+        # kwargs = {'sim': 'gauss', 'alpha': 0.5}
+        kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
+        gamma = compute_transport(x_0, x_1, method='laplace_sinkhorn', metric='euclidean', weights='unif', reg=reg,
+                                  eta= eta, solver=None, wparam=1, **kwargs)
+
     elif method == 'laplace_traj':
         kwargs = {'sim': 'gauss', 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace_traj', metric='euclidean', weights='unif', reg=reg,
