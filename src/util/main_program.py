@@ -254,12 +254,12 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta =
                                   nbitermax=1000, solver=None, wparam=1, **kwargs)
     elif method == 'laplace_sinkhorn':
         kwargs = {'sim': 'gauss', 'alpha': 0.5}
-        #kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
+        # kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace_sinkhorn', metric=metric, weights='unif', reg=reg,
                                   nbitermax=1000, eta= eta, solver=None, wparam=1, **kwargs)
 
     elif method == 'laplace_traj':
-        #kwargs = {'sim': 'gauss', 'alpha': 0.5}
+        # kwargs = {'sim': 'gauss', 'alpha': 0.5}
         kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace_traj', metric=metric, weights='unif', reg=reg,
                                   solver=None, wparam=1, **kwargs)

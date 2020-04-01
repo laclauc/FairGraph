@@ -25,12 +25,12 @@ nx.set_node_attributes(g, s, 's')
 
 print("Repairing the graph with random edges")
 #new_g = repair_random(g)
-new_x_l, s, gamma, M = total_repair_reg (g, metric='euclidean', method="laplace", reg=10, case='bin', log=False,
-                                         name='plot_cost_gamma')
+new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=5, case='bin', log=False,
+                                        name='plot_cost_gamma')
 new_g = nx.from_numpy_matrix(new_x_l)
 
 print("Learning embedding")
-emb_x, new_s, model = emb_node2vec(new_g, s_arr, filename="model_random")
+emb_x, new_s, model = emb_node2vec(new_g, s_arr, filename="laplace_knn_3_reg_10.model")
 
 idx = list(map(str, model.wv.index2word))
 X = model.wv.vectors

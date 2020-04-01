@@ -405,7 +405,7 @@ def computeTransportLaplacianSource(distances, Ss, xs, xt, reg=0, regl=0, solver
     return transp
 
 
-def computeTransportLaplacianSource_fw(distances, Ss, xs, xt, reg=0, regl=0, solver=None, nbitermax=200, thr_stop=1e-6,
+def computeTransportLaplacianSource_fw(distances, Ss, xs, xt, reg=0, regl=0, solver=None, nbitermax=400, thr_stop=1e-6,
                                        step='opt'):
     distribS = np.ones((xs.shape[0],)) / xs.shape[0]
     distribT = np.ones((xt.shape[0],)) / xt.shape[0]
@@ -454,7 +454,7 @@ def computeTransportLaplacianSource_fw(distances, Ss, xs, xt, reg=0, regl=0, sol
 
 
 def computeTransportLaplacianSymmetric_fw(distances, Ss, St, xs, xt, reg=1e-9, regls=0, reglt=0, solver=None,
-                                          nbitermax=200, thr_stop=1e-8, step='opt', **kwargs):
+                                          nbitermax=400, thr_stop=1e-8, step='opt', **kwargs):
     distribS = np.ones((xs.shape[0],)) / xs.shape[0]
     distribT = np.ones((xt.shape[0],)) / xt.shape[0]
 
@@ -509,7 +509,7 @@ def computeTransportLaplacianSymmetric_fw(distances, Ss, St, xs, xt, reg=1e-9, r
     return transp
 
 
-def computeTransportLaplacianSymmetric_fw_sinkhorn(distances, Ss, St, xs, xt, reg=1e-9, regls=0, reglt=0, nbitermax=200,
+def computeTransportLaplacianSymmetric_fw_sinkhorn(distances, Ss, St, xs, xt, reg=1e-9, regls=0, reglt=0, nbitermax=400,
                                                    thr_stop=1e-8, **kwargs):
     distribS = np.ones((xs.shape[0], 1)) / xs.shape[0]
     distribS = distribS.ravel()
@@ -569,7 +569,7 @@ def computeTransportLaplacianSymmetric_fw_sinkhorn(distances, Ss, St, xs, xt, re
 
 
 def computeTransportLaplacianSymmetricTraj_fw(distances, Ss, St, xs, xt, reg=0, regls=0, reglt=0, solver=None,
-                                              nbitermax=200, thr_stop=1e-8, step='opt', **kwargs):
+                                              nbitermax=400, thr_stop=1e-8, step='opt', **kwargs):
     distribS = np.ones((xs.shape[0],)) / xs.shape[0]
     distribT = np.ones((xt.shape[0],)) / xt.shape[0]
 
