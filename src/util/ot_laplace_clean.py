@@ -101,7 +101,7 @@ def compute_transport(xs, xt, method='lp', metric='euclidean', weights='unif', r
             .. math::
                 \Omega(\gamma)=\|\gamma\|_F^2=\sum_{j,k}\gamma_{i,j}^2
 
-        - {'sink','sinkhorn'} : sinkhorn (entropy) regularization
+        - {'sink', 'sinkhorn'} : sinkhorn (entropy) regularization
             .. math::
                 \Omega(\gamma)=\sum_{i,j}\gamma_{i,j}\log(\gamma_{i,j})
         - {'laplace'} : laplacian regularization
@@ -181,19 +181,6 @@ def compute_transport(xs, xt, method='lp', metric='euclidean', weights='unif', r
         transp = computeTransportQP(w, wtest, M, reg, solver=solver)
     elif method.lower() in ['sink', 'sinkhorn']:
         transp = ot.sinkhorn(w, wtest, M, reg)
-    elif method.lower() in ['laplace_traj']:
-        try:
-            _ = kwargs['sim']
-            alpha = kwargs['alpha']
-        except KeyError:
-            raise KeyError(
-                'Method "laplace_traj" require the similarity "sim" and the regularization term "alpha" to be passed as parameters')
-
-        Ss = get_sim(xs, **kwargs)
-        St = get_sim(xt, **kwargs)
-
-        transp = computeTransportLaplacianSymmetricTraj_fw(M, Ss, St, xs, xt, regls=reg * (1 - alpha),
-                                                           reglt=reg * alpha, solver=solver, **kwargs)
     elif method.lower() in ['laplace']:
         try:
             _ = kwargs['sim']
@@ -221,6 +208,19 @@ def compute_transport(xs, xt, method='lp', metric='euclidean', weights='unif', r
 
         transp = computeTransportLaplacianSymmetric_fw_sinkhorn(M, Ss, St, xs, xt, reg = reg,
                                                                 regls=eta * (1 - alpha), reglt=eta * alpha, **kwargs)
+    elif method.lower() in ['laplace_traj']:
+        try:
+            _ = kwargs['sim']
+            alpha = kwargs['alpha']
+        except KeyError:
+            raise KeyError(
+                'Method "laplace_traj" require the similarity "sim" and the regularization term "alpha" to be passed as parameters')
+
+        Ss = get_sim(xs, **kwargs)
+        St = get_sim(xt, **kwargs)
+
+        transp = computeTransportLaplacianSymmetricTraj_fw(M, Ss, St, xs, xt, regls=reg * (1 - alpha),
+                                                           reglt=reg * alpha, solver=solver, **kwargs)
 
     else:
         print('Warning: unknown method {method}. Fallback to LP'.format(method=method))
@@ -556,10 +556,16 @@ def computeTransportLaplacianSymmetric_fw_sinkhorn(distances, Ss, St, xs, xt, re
             break
         transp = (1 - tau) * old_transp + tau * transp0
 
-        if niter >= nbitermax or np.sum(np.fabs(E)) < thr_stop:
+        err = np.sum(np.fabs(E))
+
+        if niter >= nbitermax or  err < thr_stop:
             break
         niter += 1
-    print('nbiter={}'.format(niter))
+
+        if niter % 100 == 0:
+            print('{:5s}|{:12s}'.format('It.', 'Err') + '\n' + '-' * 19)
+            print('{:5d}|{:8e}|'.format(niter, err))
+
     return transp
 
 
@@ -597,8 +603,10 @@ def computeTransportLaplacianSymmetricTraj_fw(distances, Ss, St, xs, xt, reg=0, 
 
         if step == 'opt':
             # optimal step size !!!
-            tau = max(0, min(1, (-np.sum(E * Ctot) - np.sum(E * G)) / (
-                        2 * regls * quadloss1(E, Ls, xt) + 2 * reglt * quadloss2(E, Lt, xs))))
+            num = -np.sum(E * Ctot) - np.sum(E * G)
+            q1 = quadloss1(E, Ls, xt)
+            q2 = quadloss2(E, Lt, xs)
+            tau = max(0, min(1, num / (2 * regls * q1 + 2 * reglt * q2)))
         else:
             # other step size just in case
             tau = 2. / (niter + 2)  # print "tau:",tau
@@ -610,11 +618,16 @@ def computeTransportLaplacianSymmetricTraj_fw(distances, Ss, St, xs, xt, reg=0, 
         if niter >= nbitermax:
             loop = False
 
-        if np.sum(np.abs(transp - old_transp)) < thr_stop:
+        err = np.sum(np.abs(transp - old_transp))
+        if  err < thr_stop:
             loop = False
         # print niter
 
         niter += 1
+
+        if niter % 1 == 0:
+            print('{:5s}|{:12s}'.format('It.', 'Err') + '\n' + '-' * 19)
+            print('{:5d}|{:8e}|'.format(niter, err))
 
     # print "loss:",np.sum(transp*distances)+quadloss(transp,K)/2
 
