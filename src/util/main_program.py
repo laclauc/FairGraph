@@ -89,16 +89,16 @@ def shuffle_part(prot_s, prop_shuffle=0.1):
     return prot_s
 
 
-def repair_random(g):
+def repair_random(g, s):
     """
     Repairing of the graph by adding random links between nodes of two different groups
     :param g: the graph
     :return: the new graph
     """
     x = nx.adjacency_matrix(g)
-    s = nx.get_node_attributes(g, 's')
-    s_arr = np.fromiter(s.values(), dtype=int)
-
+    #s = nx.get_node_attributes(g, 's')
+    #s_arr = np.fromiter(s.values(), dtype=int)
+    s_arr = s
     # Separate rows adjacency matrix based on the protected attribute
     idx_p0 = np.where(s_arr == 0)[0]
     idx_p1 = np.where(s_arr == 1)[0]
@@ -108,7 +108,7 @@ def repair_random(g):
     for i in idx_p0:
         for j in idx_p1:
             if x[i, j] == 0:
-                x_random[i, j] = np.random.choice([0, 1], p=[0.8, 0.2])
+                x_random[i, j] = np.random.choice([0, 1], p=[0.5, 0.5])
                 x_random[j, i] = x_random[i, j]
 
     new_g = nx.from_numpy_matrix(x_random)

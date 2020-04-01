@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def convert(tup):
     di = dict(tup)
     return di
@@ -10,6 +11,15 @@ def hadamard(model, data, link_info, protS_int):
     for i in range(len(data)):
         had_pro = np.multiply(model.wv[str(data[i][0])], model.wv[str(data[i][1])])
         absolute_diff = abs(protS_int[data[i][0]]-protS_int[data[i][1]])
+        hadamard_links.append((had_pro, absolute_diff, link_info[i]))
+    return hadamard_links
+
+
+def hadamard_fb(model, data, link_info, protS_int):
+    hadamard_links = []
+    for i in range(len(data)):
+        had_pro = np.multiply(model.wv[str(data[i][0])], model.wv[str(data[i][1])])  # hadamard product
+        absolute_diff = abs(protS_int[str(data[i][0])]-protS_int[str(data[i][1])])
         hadamard_links.append((had_pro, absolute_diff, link_info[i]))
     return hadamard_links
 

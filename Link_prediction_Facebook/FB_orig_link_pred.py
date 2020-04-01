@@ -1,51 +1,16 @@
 import facebook
-import matplotlib.pyplot as plt
+import pickle as pkl
 import networkx
-import numpy as np
-import pickle as pkl
-from OTAdjacency import *
-import networkx as nx
-import pickle as pkl
+from src.util.link_prediction import *
 from sklearn.linear_model import LogisticRegression
-from sklearn import model_selection
-import collections
-import random
-import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 from gensim.models import Word2Vec
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score, roc_curve, f1_score,auc
-import random
-
-def hadamard(model,data,link_info,protS_int):
-    hadamard_links = [] #absolute_diff = [] #absolute diff between sensitive attributes
-    for i in range(len(data)):
-        had_pro = np.multiply(model.wv[str(data[i][0])],model.wv[str(data[i][1])])  # hadamard product
-        absolute_diff = abs(protS_int[str(data[i][0])]-protS_int[str(data[i][1])])
-        hadamard_links.append((had_pro,absolute_diff,link_info[i]))
-    return hadamard_links
-
-def get_tups_data(hadamard_data):
-    vectors_and_abs_val=[]
-    links=[]
-    for i in hadamard_data:
-        vectors_and_abs_val.append((i[0],i[1]))
-        links.append(i[2])
-    return vectors_and_abs_val,links
-
-def transform_str_to_int(orig_node_list, edges):
-    '''node_list is the tuple list in order of graph'''
-    lis_tup=[]
-    for i in range(len(edges)):
-        ind_first_ele = [y[0] for y in node_list].index(edges[i][0])
-        ind_sec_ele   = [y[0] for y in node_list].index(edges[i][1])
-        edges[i] = (ind_first_ele,ind_sec_ele)
-    return edges
+from sklearn.metrics import roc_auc_score
 
 # load the network
 facebook.load_network()
-#print(facebook.network.order())
-#print(facebook.network.size())
+# print(facebook.network.order())
+# print(facebook.network.size())
 adj = networkx.adjacency_matrix(facebook.network)
 
 # Look at a node's features
@@ -84,8 +49,8 @@ train_links  = pkl.load(open("train_links_FB.p", "rb" ) )
 test_links   = pkl.load(open("test_links_FB.p", "rb" ) )
 
 # hadamard product
-train_data = hadamard(model,train_edges,train_links,protS)
-test_data  = hadamard(model,test_edges,test_links,protS)
+train_data = hadamard_fb(model,train_edges,train_links,protS)
+test_data  = hadamard_fb(model,test_edges,test_links,protS)
 
 # data preprocessing for link prediction
 train_tup,trainy = get_tups_data(train_data)

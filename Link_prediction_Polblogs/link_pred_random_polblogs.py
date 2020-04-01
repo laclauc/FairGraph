@@ -6,7 +6,6 @@ from sklearn.metrics import roc_auc_score
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 
-
 print("Loading the graph")
 _temp = nx.read_gml("data/polblogs.gml")
 g = _temp.to_undirected(reciprocal=False, as_view=False)
@@ -25,7 +24,7 @@ adj_g = nx.adjacency_matrix(g)
 nx.set_node_attributes(g, s, 's')
 
 print("Repairing the graph with random edges")
-new_g = repair_random(g, )
+new_g = repair_random(g)
 
 print("Learning embedding")
 emb_x, new_s, model = emb_node2vec(new_g, s_arr, filename="model_random")
