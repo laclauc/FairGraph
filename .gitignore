@@ -1,1 +1,3 @@
 .idea
+src/util/__pycache__
+.DS_Store
