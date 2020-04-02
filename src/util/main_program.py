@@ -256,13 +256,13 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta =
         kwargs = {'sim': 'gauss', 'alpha': 0.5}
         # kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace_sinkhorn', metric=metric, weights='unif', reg=reg,
-                                  nbitermax=1000, eta= eta, solver=None, wparam=1, **kwargs)
+                                  nbitermax=1000, eta=eta, solver=None, wparam=1, **kwargs)
 
     elif method == 'laplace_traj':
         # kwargs = {'sim': 'gauss', 'alpha': 0.5}
         kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace_traj', metric=metric, weights='unif', reg=reg,
-                                  solver=None, wparam=1, **kwargs)
+                                  nbitermax=1000, solver=None, wparam=1, **kwargs)
 
     # Total data repair
     pi_0 = n0 / (n0 + n1)
@@ -276,7 +276,7 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta =
     new_x[idx_p1, :] = x_1_rep
 
     if case == 'bin':
-        new_x[np.where(new_x < np.quantile(new_x, 0.5)) == 0]
+        new_x[np.where(new_x < np.quantile(new_x, 0.2)) == 0]
 
     if log:
         plt.imshow(gamma)
