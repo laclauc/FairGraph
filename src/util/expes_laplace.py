@@ -15,11 +15,11 @@ for size in [300]:
     print('Size: '+str(size))
     g, s = get_graph_prot(sizes=sizes, probs=probs, choice=method, shuffle=0)
 
-    # t0 = time.time()
-    # new_x_l, s, gamma, M = total_repair_reg(g, metric='sqeuclidean', method="laplace", reg=10, case='bin', log=False,
-    #                                        name='plot_cost_gamma')
-    #
-    # print('Elapsed time Laplace: '+str(time.time()-t0))
+    t0 = time.time()
+    new_x_l, s, gamma, M = total_repair_reg(g, metric='sqeuclidean', method="laplace", reg=10, case='bin', log=False,
+                                           name='plot_cost_gamma')
+
+    print('Elapsed time Laplace: '+str(time.time()-t0))
 
     t0 = time.time()
     new_x_l_s, s_s, gamma_s, M_s = total_repair_reg(g, metric='sqeuclidean', method="laplace_sinkhorn", reg=1,
