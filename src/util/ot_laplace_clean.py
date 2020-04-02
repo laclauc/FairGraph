@@ -579,8 +579,8 @@ def computeTransportLaplacianSymmetricTraj_fw(distances, Ss, St, xs, xt, reg=0, 
     Ls = get_laplacian(Ss)
     Lt = get_laplacian(St)
 
-    Cs = -regls / ns * dots(Ls + Ls.T, xs, xt.T)
-    Ct = -reglt / nt * dots(xs, xt.T, Lt + Lt.T)
+    Cs = np.asarray(-regls / ns * dots(Ls + Ls.T, xs, xt.T))
+    Ct = np.asarray(-reglt / nt * dots(xs, xt.T, Lt + Lt.T))
 
     loop = True
 
