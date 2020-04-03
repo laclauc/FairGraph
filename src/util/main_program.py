@@ -249,7 +249,7 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta =
 
     elif method == 'laplace':
         # kwargs = {'sim': 'gauss', 'alpha': 0.5}
-        kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
+        kwargs = {'sim': 'knn', 'nn': 5, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace', metric=metric, weights='unif', reg=reg,
                                   nbitermax=1000, solver=None, wparam=1, **kwargs)
     elif method == 'laplace_sinkhorn':

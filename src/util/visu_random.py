@@ -27,8 +27,6 @@ DI =
 Accuracy = 
 AUC = 
 
-
-
 *********
 knn = 10 
 *********
@@ -43,7 +41,22 @@ DI = 0.2673
 Accuracy = 0.736
 AUC = 0.80436
 
+Laplace -reg = 100
+DI = 0.24832753545
+Accuracy = 0.73407
+AUC = 0.8025167
 
+*******
+knn = 5
+*******
+Laplace - reg = 10
+DI = 0.243475
+Accuracy = 0.76974
+AUC = 0.838844
 
+Laplace - reg = 1
+DI = 0.2873725
+Accuracy = 0.69229
+AUC = 0.75520286
 
 """
