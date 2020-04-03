@@ -27,12 +27,8 @@ adj_g = nx.adjacency_matrix(g)
 
 
 
-
-
-"""
-
 #print("Loading models and graph")
-#model = Word2Vec.load("polblog_n2v.model")
+model = Word2Vec.load("polblog_n2v.model")
 
 # loading graph and saving protected atrribute info for each node in protS
 d = nx.read_gml("polblogs/polblogs.gml")
@@ -49,7 +45,7 @@ node_list = list(g.nodes(data='value'))
 # Driver Code
 tups = node_list
 dictionary = {}
-protS = Convert(tups, dictionary)
+protS = convert(tups, dictionary)
 prot_arr= np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
 
@@ -64,8 +60,8 @@ train_links  = pkl.load(open("train_links_polblogs.p", "rb" ) )
 test_links   = pkl.load(open("test_links_polblogs.p", "rb" ) )
 
 # train_data, test_data: hadamard returns tuple of (hadamard product, absolute_diff. between sensitive attribute,link_info: labels for edge present or not)
-train_data = hadamard(model,train_edges,train_links,protS)
-test_data = hadamard(model,test_edges,test_links,protS)
+train_data = hadamard(model, train_edges,train_links,protS)
+test_data = hadamard(model, test_edges,test_links,protS)
 
 # data preparation for link-prediction using Logistic Regression
 train_tup,trainy = get_tups_data(train_data)
@@ -119,4 +115,3 @@ print('same_party_count: ', same_party_count)
 print('opp_party_count: ', opp_party_count)
 
 print('Disparate Impact: ', opp_party_count/same_party_count)
-"""
