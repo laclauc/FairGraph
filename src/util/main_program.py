@@ -4,7 +4,7 @@ from scipy.sparse import issparse
 import networkx as nx
 from sklearn.manifold import TSNE
 from node2vec import Node2Vec
-from util.ot_laplace_clean import *
+from src.util.ot_laplace_clean import *
 import os
 import numpy as np
 

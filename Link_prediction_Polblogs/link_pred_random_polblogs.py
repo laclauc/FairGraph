@@ -1,10 +1,7 @@
 from src.util.link_prediction import *
 from src.util.main_program import *
 import pickle as pkl
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score
 import numpy as np
-from sklearn.metrics import classification_report, confusion_matrix
 
 print("Loading the graph")
 _temp = nx.read_gml("data/polblogs.gml")
@@ -25,13 +22,16 @@ nx.set_node_attributes(g, s, 's')
 
 print("Repairing the graph with Laplace")
 
-# new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=0.5, case='bin', log=False,
-#                                     name='plot_cost_gamma')
-# new_g = nx.from_numpy_matrix(new_x_l)
+new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=1, case='bin', log=False,
+                                     name='plot_cost_gamma')
+new_g = nx.from_numpy_matrix(new_x_l)
 
-# laplace_graph = [new_g, s]
-# with open('laplace_graph_05.pkl', 'wb') as outfile:
-#    pkl.dump(laplace_graph, outfile, pkl.HIGHEST_PROTOCOL)
+laplace_graph = [new_g, s]
+with open('laplace_graph_1.pkl', 'wb') as outfile:
+    pkl.dump(laplace_graph, outfile, pkl.HIGHEST_PROTOCOL)
+
+
+"""
 
 with open("laplace_graph_05.pkl", "rb") as f:
     mat = pkl.load(f)
@@ -106,3 +106,4 @@ print('same_party_count: ', same_party_count)
 print('opp_party_count: ', opp_party_count)
 
 print('Disparate Impact: ', opp_party_count/same_party_count)
+"""

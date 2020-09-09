@@ -45,15 +45,17 @@ with open("laplace_graph_05.pkl", "rb") as f:
 
 new_graph = mat[0]
 
-list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] < 0.45]
+list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] <= 0.3]
 new_graph.remove_edges_from(list_edge)
-lab = {k: j for k,j in zip(new_graph.nodes, lab_node_array[:, 1])}
+lab = {k: j for k, j in zip(new_graph.nodes, lab_node_array[:, 1])}
 h = nx.relabel_nodes(new_graph, lab)
 
 # Using Stellar library
 stellar_polblogs_lap = StellarGraph.from_networkx(h)
 stellar_polblogs = StellarGraph.from_networkx(g)
 
+print(nx.density(g))
+print(nx.density(h))
 auc, di, cons, rep_bias = [], [], [], []
 auc_train = []
 trials = 10
@@ -107,7 +109,7 @@ for i in range(trials):
 
     p = 2
     q = 2
-    dimensions = 128
+    dimensions = 64
     num_walks = 10
     walk_length = 35
     window_size = 10
@@ -260,13 +262,14 @@ for i in range(trials):
         }
 
 
-    def representation_bias(ex_train, ex_test, label_train, label_test):
+    def representation_bias(ex_train, label_train):
         lr_clf = LogisticRegressionCV(Cs=10, cv=10, scoring="roc_auc", max_iter=1000).fit(ex_train, label_train)
-        predicted = lr_clf.predict_proba(ex_test)
+        # predicted = lr_clf.predict_proba(ex_test)
 
         # check which class corresponds to positive links
-        positive_column = list(lr_clf.classes_).index(1)
-        return roc_auc_score(label_test, predicted[:, positive_column])
+        # positive_column = list(lr_clf.classes_).index(1)
+        # return roc_auc_score(label_train, predicted[:, positive_column])
+        return lr_clf.score(ex_train, label_train)
 
     binary_operators = [operator_hadamard]
     results = [run_link_prediction(op) for op in binary_operators]
@@ -280,17 +283,17 @@ for i in range(trials):
 
     auc_train.append(best_result['score'])
 
-    print("Start node2vec on the graph test")
-    embedding_test, vec_test, s_test = node2vec_embedding(graph_test, "Test Graph", protS)
+    # print("Start node2vec on the graph test")
+    # embedding_test, vec_test, s_test = node2vec_embedding(graph_test, "Test Graph", protS)
 
-    auc_protS = representation_bias(vec_train, vec_test, s_train, s_test)
+    auc_protS = representation_bias(vec_train, s_train)
     rep_bias.append(auc_protS)
-    print(rep_bias)
-    test_score, test_score_bias, test_score_consistency = evaluate_link_prediction_model(
+
+    test_score, test_score_bias, test_score_consistency = evaluate_link_prediction_model (
         best_result["classifier"],
         examples_test,
         labels_test,
-        embedding_test,
+        embedding_train,
         best_result["binary_operator"],
         abs_diff_test
     )
@@ -302,7 +305,7 @@ for i in range(trials):
     di.append(test_score_bias)
     cons.append(test_score_consistency)
 
-print("Done ! ")
+print("Done !")
 
 print("Average AUC over 10 trials: %8.2f (%8.2f) " % (np.asarray(auc).mean(), np.asarray(auc).std()))
 print("Average DI over 10 trials: %8.2f (%8.2f) " % (np.asarray(di).mean(), np.asarray(di).std()))
@@ -311,6 +314,6 @@ print("Average Representation Bias over 10 trials: %8.2f (%8.2f) " % (np.asarray
                                                                       np.asarray(rep_bias).std()))
 
 all_results = [auc, di, cons, rep_bias]
-with open('results/polblogs_node2vec_laplace05.pkl', 'wb') as outfile:
+with open('results/polblogs_node2vec_laplace05_045.pkl', 'wb') as outfile:
     pkl.dump(all_results, outfile, pkl.HIGHEST_PROTOCOL)
 
