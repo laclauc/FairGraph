@@ -56,7 +56,7 @@ g.remove_nodes_from(list(nx.isolates(g)))
 #print(nx.info(g))
 node_list = list(g.nodes(data='value'))
 int_node_list = [(node_list.index(i),i[1]) for i in node_list]
-dict_is={}
+dict_is = {}
 protS_int = Convert(int_node_list,dict_is)
 #print(node_list)
 # Convert the attribute to a dictionnary

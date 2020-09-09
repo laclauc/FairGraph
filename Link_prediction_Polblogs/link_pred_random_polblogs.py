@@ -23,14 +23,23 @@ adj_g = nx.adjacency_matrix(g)
 
 nx.set_node_attributes(g, s, 's')
 
-print("Repairing the graph with random edges")
-#new_g = repair_random(g)
-new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=20, case='bin', log=False,
-                                        name='plot_cost_gamma')
-new_g = nx.from_numpy_matrix(new_x_l)
+print("Repairing the graph with Laplace")
+
+# new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=0.5, case='bin', log=False,
+#                                     name='plot_cost_gamma')
+# new_g = nx.from_numpy_matrix(new_x_l)
+
+# laplace_graph = [new_g, s]
+# with open('laplace_graph_05.pkl', 'wb') as outfile:
+#    pkl.dump(laplace_graph, outfile, pkl.HIGHEST_PROTOCOL)
+
+with open("laplace_graph_05.pkl", "rb") as f:
+    mat = pkl.load(f)
+
+new_g = mat[0]
 
 print("Learning embedding")
-emb_x, new_s, model = emb_node2vec(new_g, s_arr, filename="laplace_knn_5_reg_20.model")
+emb_x, new_s, model = emb_node2vec(new_g, s_arr, filename="laplace_knn_5_reg_1000.model")
 
 idx = list(map(str, model.wv.index2word))
 X = model.wv.vectors
@@ -56,7 +65,7 @@ test_tup, testy = get_tups_data(test_data)
 trainX, abs_diff_train = map(list, zip(*train_tup))
 testX, abs_diff_test = map(list, zip(*test_tup))
 
-# fit a model
+
 model_LR = LogisticRegression(solver='lbfgs', max_iter=500)
 model_LR.fit(trainX, trainy)
 y_pred = model_LR.predict(testX)

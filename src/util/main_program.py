@@ -8,7 +8,6 @@ from util.ot_laplace_clean import *
 import os
 import numpy as np
 
-
 def get_graph_prot(sizes=None, probs=None, number_class='binary', choice='random', shuffle=0.1):
     """
      Generate a graph with a community structure, and where the nodes are assigned a protected attribute
@@ -93,6 +92,7 @@ def repair_random(g, s):
     """
     Repairing of the graph by adding random links between nodes of two different groups
     :param g: the graph
+    :param s: protected attribute
     :return: the new graph
     """
     x = nx.adjacency_matrix(g)
@@ -108,7 +108,7 @@ def repair_random(g, s):
     for i in idx_p0:
         for j in idx_p1:
             if x[i, j] == 0:
-                x_random[i, j] = np.random.choice([0, 1], p=[0.5, 0.5])
+                x_random[i, j] = np.random.choice([0, 1], p=[0.95, 0.05])
                 x_random[j, i] = x_random[i, j]
 
     new_g = nx.from_numpy_matrix(x_random)
@@ -196,7 +196,7 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     return new_x, gamma, m
 
 
-def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta = 1, case='bin', log=False, name='plot_cost_gamma'):
+def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta=1, case='bin', log=False, name='plot_cost_gamma'):
     """
     Repairing of the graph with OT and the sinkhorn version
     :param g: a graph to repair. The protected attribute is a feature of the node
@@ -251,7 +251,7 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta =
         # kwargs = {'sim': 'gauss', 'alpha': 0.5}
         kwargs = {'sim': 'knn', 'nn': 5, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace', metric=metric, weights='unif', reg=reg,
-                                  nbitermax=1000, solver=None, wparam=1, **kwargs)
+                                  nbitermax=2000, solver=None, wparam=1, **kwargs)
     elif method == 'laplace_sinkhorn':
         kwargs = {'sim': 'gauss', 'alpha': 0.5}
         # kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}

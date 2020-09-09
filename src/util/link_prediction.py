@@ -5,8 +5,31 @@ def convert(tup):
     di = dict(tup)
     return di
 
+def operator_hadamard(u, v):
+    return u * v
+
+
+def operator_l1(u, v):
+    return np.abs(u - v)
+
+
+def operator_l2(u, v):
+    return (u - v) ** 2
+
+
+def operator_avg(u, v):
+    return (u + v) / 2.0
 
 def hadamard(model, data, link_info, protS_int):
+    hadamard_links = []
+    for i in range(len(data)):
+        had_pro = np.multiply(model.wv[str(data[i][0])], model.wv[str(data[i][1])])
+        absolute_diff = abs(protS_int[data[i][0]]-protS_int[data[i][1]])
+        hadamard_links.append((had_pro, absolute_diff, link_info[i]))
+    return hadamard_links
+
+
+def hadamard_verse(model, data, link_info, protS_int):
     hadamard_links = []
     for i in range(len(data)):
         had_pro = np.multiply(model.wv[str(data[i][0])], model.wv[str(data[i][1])])
@@ -42,3 +65,21 @@ def transform_str_to_int(orig_node_list, edges):
     return edges
 
 
+# V1
+def splitGraphToTrainTest(un_graph, train_ratio, is_undirected=True):
+    # taken and adapter from GEM repository of palash1992
+    train_graph = un_graph.copy()
+    test_graph = un_graph.copy()
+
+    for (st, ed, w) in un_graph.edges(data='weight', default=1):
+        if is_undirected:
+            continue
+
+        if np.random.uniform() <= train_ratio:
+            test_graph.remove_edge(st, ed)
+        else:
+            train_graph.remove_edge(st, ed)
+    return train_graph, test_graph
+
+# temp_polblogs, test_polblogs = splitGraphToTrainTest(g, train_ratio=0.8)
+# train_polblogs, validation_polblogs = splitGraphToTrainTest(temp_polblogs, train_ratio=0.6)
