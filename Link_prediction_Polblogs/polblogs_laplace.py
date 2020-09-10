@@ -40,12 +40,12 @@ protS = Convert(tups)
 prot_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
 
-with open("laplace_graph_05.pkl", "rb") as f:
+with open("emd_graph.pkl", "rb") as f:
     mat = pkl.load(f)
 
 new_graph = mat[0]
 
-list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] <= 0.3]
+list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] <= 0.5]
 new_graph.remove_edges_from(list_edge)
 lab = {k: j for k, j in zip(new_graph.nodes, lab_node_array[:, 1])}
 h = nx.relabel_nodes(new_graph, lab)
@@ -56,6 +56,7 @@ stellar_polblogs = StellarGraph.from_networkx(g)
 
 print(nx.density(g))
 print(nx.density(h))
+
 auc, di, cons, rep_bias = [], [], [], []
 auc_train = []
 trials = 10
@@ -69,7 +70,6 @@ for i in range(trials):
     # Do the same process to compute a training subset from within the test graph
     edge_splitter_train = EdgeSplitter(graph_test, stellar_polblogs_lap)
     graph_train, examples, labels = edge_splitter_train.train_test_split(p=0.3, method="global", keep_connected=True)
-
     (
         examples_train,
         examples_model_selection,
@@ -77,35 +77,9 @@ for i in range(trials):
         labels_model_selection,
     ) = train_test_split(examples, labels, train_size=0.75, test_size=0.25)
 
-    for k,i in enumerate(examples_train):
-        tup = (i[0],i[1])
+    for k, i in enumerate(examples_train):
+        tup = (i[0], i[1])
         labels_test[k] = int(g.has_edge(*tup))
-
-    """
-    # Clear examples and examples_test by removing tuples which do not exist in the original graph
-    # First only keep positive labels on both sets
-    idx_ex_pos = np.where(labels == 1)
-    idx_test_pos = np.where(labels_test == 1)
-
-    examples_pos = examples[idx_ex_pos]
-    examples_test_pos = examples_test[idx_test_pos]
-
-    # Second : concatenate both
-    full_pos = np.concatenate((examples_pos, examples_test_pos), axis=0)
-
-    # Third : remove "false positive" based on the original graph tuples
-    # Identify fake positive
-    true_pos = nx.to_pandas_edgelist(g)
-    true_pos = true_pos.values
-
-    list_full_pos = list(map(tuple, full_pos))
-    list_true_pos = list(map(tuple, true_pos))
-
-    _temp = set(map(frozenset, list_full_pos)) & set(map(frozenset, list_true_pos))
-    res_fi = [tuple(element) for element in _temp]
-
-    # Fourth : Remove fake negative from examples and examples_test by comparing full pos with true_pos
-    """
 
     p = 2
     q = 2
@@ -149,7 +123,6 @@ for i in range(trials):
         for i in range(len_ex):
             absolute_diff.append(abs(S[str(examples[i][0])] - S[str(examples[i][1])]))
         return absolute_diff
-
 
     abs_diff_train = abs_diff(examples_train, protS)
     abs_diff_model_selection = abs_diff(examples_model_selection, protS)
@@ -289,7 +262,7 @@ for i in range(trials):
     auc_protS = representation_bias(vec_train, s_train)
     rep_bias.append(auc_protS)
 
-    test_score, test_score_bias, test_score_consistency = evaluate_link_prediction_model (
+    test_score, test_score_bias, test_score_consistency = evaluate_link_prediction_model(
         best_result["classifier"],
         examples_test,
         labels_test,
@@ -314,6 +287,6 @@ print("Average Representation Bias over 10 trials: %8.2f (%8.2f) " % (np.asarray
                                                                       np.asarray(rep_bias).std()))
 
 all_results = [auc, di, cons, rep_bias]
-with open('results/polblogs_node2vec_laplace05_045.pkl', 'wb') as outfile:
+with open('results/polblogs_node2vec_emd_045.pkl', 'wb') as outfile:
     pkl.dump(all_results, outfile, pkl.HIGHEST_PROTOCOL)
 

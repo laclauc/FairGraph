@@ -193,7 +193,7 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
         plt.show()
         plt.savefig('costMatrix_' + name + '.png')
 
-    return new_x, gamma, m
+    return new_x, s, gamma, m
 
 
 def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta=1, case='bin', log=False, name='plot_cost_gamma'):

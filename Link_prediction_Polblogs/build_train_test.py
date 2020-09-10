@@ -19,7 +19,6 @@ def Convert(tup):
     dic = dict(tup)
     return dic
 
-
 d = nx.read_gml("polblogs/polblogs.gml")
 g = d.to_undirected(reciprocal=False, as_view=False)
 
@@ -39,7 +38,6 @@ protS = Convert(tups)
 
 prot_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
-
 
 # Using Stellar library
 stellar_polblogs = StellarGraph.from_networkx(g)
@@ -91,6 +89,7 @@ for i in range(trials):
         idx = list(map(str, model.wv.index2word))
         new_s = list(s[x] for x in idx)
         vec_emb = model.wv.vectors
+
         def get_embedding(u):
             return model.wv[u]
 

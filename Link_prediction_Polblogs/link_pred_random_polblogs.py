@@ -20,15 +20,25 @@ adj_g = nx.adjacency_matrix(g)
 
 nx.set_node_attributes(g, s, 's')
 
-print("Repairing the graph with Laplace")
+# print("Repairing the graph with Laplace")
 
-new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=1, case='bin', log=False,
-                                     name='plot_cost_gamma')
+# new_x_l, s, gamma, M = total_repair_reg(g, metric='euclidean', method="laplace", reg=0.05, case='bin', log=False,
+     #                                name='plot_cost_gamma')
+# new_g = nx.from_numpy_matrix(new_x_l)
+
+# laplace_graph = [new_g, s]
+#with open('laplace_graph_005.pkl', 'wb') as outfile:
+#    pkl.dump(laplace_graph, outfile, pkl.HIGHEST_PROTOCOL)
+
+
+print("Repairing the graph with EMD")
+
+new_x_l, s, gamma, M = total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='plot_cost_gamma')
 new_g = nx.from_numpy_matrix(new_x_l)
 
-laplace_graph = [new_g, s]
-with open('laplace_graph_1.pkl', 'wb') as outfile:
-    pkl.dump(laplace_graph, outfile, pkl.HIGHEST_PROTOCOL)
+emd_graph = [new_g, s]
+with open('emd_graph.pkl', 'wb') as outfile:
+    pkl.dump(emd_graph, outfile, pkl.HIGHEST_PROTOCOL)
 
 
 """
