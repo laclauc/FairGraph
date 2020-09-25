@@ -20,6 +20,7 @@ def Convert(tup):
     dic = dict(tup)
     return dic
 
+# Open the original graph
 d = nx.read_gml("polblogs/polblogs.gml")
 g = d.to_undirected(reciprocal=False, as_view=False)
 
@@ -40,7 +41,8 @@ protS = Convert(tups)
 prot_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
 
-with open("laplace_graph_05.pkl", "rb") as f:
+# Open the repaired graph
+with open("repPolblogs/laplace_graph_05.pkl", "rb") as f:
     mat = pkl.load(f)
 
 new_graph = mat[0]
@@ -77,7 +79,7 @@ for i in range(trials):
         labels_model_selection,
     ) = train_test_split(examples, labels, train_size=0.75, test_size=0.25)
 
-    # Clear labels by removing "fake" links 
+    # Clear labels by removing "fake" links
     for k, i in enumerate(examples_test):
         tup = (i[0], i[1])
         labels_test[k] = int(g.has_edge(*tup))
