@@ -77,9 +77,7 @@ for i in range(trials):
         labels_model_selection,
     ) = train_test_split(examples, labels, train_size=0.75, test_size=0.25)
 
-    # for k, i in enumerate(examples_train):
-    #   tup = (i[0], i[1])
-    #    labels_test[k] = int(g.has_edge(*tup))
+    # Clear labels by removing "fake" links 
     for k, i in enumerate(examples_test):
         tup = (i[0], i[1])
         labels_test[k] = int(g.has_edge(*tup))
@@ -300,4 +298,3 @@ print("Average Representation Bias over 10 trials: %8.2f (%8.2f) " % (np.asarray
 all_results = [auc, di, cons, rep_bias]
 with open('results/polblogs_node2vec_laplace05_05.pkl', 'wb') as outfile:
     pkl.dump(all_results, outfile, pkl.HIGHEST_PROTOCOL)
-
