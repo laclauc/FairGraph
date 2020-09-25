@@ -40,7 +40,7 @@ protS = Convert(tups)
 prot_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
 
-with open("emd_graph.pkl", "rb") as f:
+with open("laplace_graph_05.pkl", "rb") as f:
     mat = pkl.load(f)
 
 new_graph = mat[0]
@@ -77,9 +77,20 @@ for i in range(trials):
         labels_model_selection,
     ) = train_test_split(examples, labels, train_size=0.75, test_size=0.25)
 
-    for k, i in enumerate(examples_train):
+    # for k, i in enumerate(examples_train):
+    #   tup = (i[0], i[1])
+    #    labels_test[k] = int(g.has_edge(*tup))
+    for k, i in enumerate(examples_test):
         tup = (i[0], i[1])
         labels_test[k] = int(g.has_edge(*tup))
+
+    for k, i in enumerate(examples_train):
+        tup = (i[0], i[1])
+        labels_train[k] = int(g.has_edge(*tup))
+
+    for k, i in enumerate(examples_model_selection):
+        tup = (i[0], i[1])
+        labels_model_selection[k] = int(g.has_edge(*tup))
 
     p = 2
     q = 2
@@ -287,6 +298,6 @@ print("Average Representation Bias over 10 trials: %8.2f (%8.2f) " % (np.asarray
                                                                       np.asarray(rep_bias).std()))
 
 all_results = [auc, di, cons, rep_bias]
-with open('results/polblogs_node2vec_emd_045.pkl', 'wb') as outfile:
+with open('results/polblogs_node2vec_laplace05_05.pkl', 'wb') as outfile:
     pkl.dump(all_results, outfile, pkl.HIGHEST_PROTOCOL)
 

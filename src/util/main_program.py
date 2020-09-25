@@ -251,7 +251,7 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta=1
         # kwargs = {'sim': 'gauss', 'alpha': 0.5}
         kwargs = {'sim': 'knn', 'nn': 5, 'alpha': 0.5}
         gamma = compute_transport(x_0, x_1, method='laplace', metric=metric, weights='unif', reg=reg,
-                                  nbitermax=2000, solver=None, wparam=1, **kwargs)
+                                  nbitermax=1000, solver=None, wparam=1, **kwargs)
     elif method == 'laplace_sinkhorn':
         kwargs = {'sim': 'gauss', 'alpha': 0.5}
         # kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
@@ -274,9 +274,6 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta=1
     new_x = np.zeros(x.shape)
     new_x[idx_p0, :] = x_0_rep
     new_x[idx_p1, :] = x_1_rep
-
-    if case == 'bin':
-        new_x[np.where(new_x < np.quantile(new_x, 0.2)) == 0]
 
     if log:
         plt.imshow(gamma)

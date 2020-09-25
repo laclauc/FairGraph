@@ -291,6 +291,6 @@ print("Average Representation Bias over 10 trials: %8.2f (%8.2f) " % (np.asarray
                                                                       np.asarray(rep_bias).std()))
 
 all_results = [auc, di, cons, rep_bias]
-with open('results/polblogs_node2vec.pkl', 'wb') as outfile:
+with open('results/fb_node2vec.pkl', 'wb') as outfile:
     pkl.dump(all_results, outfile, pkl.HIGHEST_PROTOCOL)
 
