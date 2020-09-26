@@ -35,8 +35,10 @@ df["nodeId"] = df["nodeId"].astype(str)
 LE = LabelEncoder()
 df['Country'] = LE.fit_transform(df['Country'])
 
-
 protS = dict(zip(df['nodeId'], df['Country']))
+
+nx.set_node_attributes(g, protS, name='protS')
+print(nx.attribute_assortativity_coefficient(g, "protS"))
 
 # Remove node in protS which are not in the graph (isolated nodes)
 new = protS.copy()
@@ -126,7 +128,6 @@ for i in range(trials):
             binary_operator(transform_node(src), transform_node(dst))
             for src, dst in link_examples
         ]
-
 
     def train_link_prediction_model(link_examples, link_labels, get_embedding, binary_operator):
         clf = link_prediction_classifier()

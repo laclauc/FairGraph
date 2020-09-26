@@ -7,10 +7,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn import model_selection
 import sys
 
-#from util.gae.preprocessing import mask_test_edges
-#from matplotlib.lines import Line2D
-#from matplotlib.patches import Circle
-
 synthetic_case = sys.argv[1]
 trial = int(sys.argv[2])
 log = sys.argv[3]

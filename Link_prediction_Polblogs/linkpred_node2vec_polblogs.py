@@ -36,6 +36,9 @@ tups = node_list
 dictionary = {}
 protS = Convert(tups)
 
+nx.set_node_attributes(g, protS, name='protS')
+print(nx.attribute_assortativity_coefficient(g, "protS"))
+
 prot_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
 

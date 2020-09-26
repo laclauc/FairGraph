@@ -58,7 +58,8 @@ tups = tuple(zip(list_node_g, protSnum))
 h = nx.relabel_nodes(g, list_node_g_dic)
 dictionary = {}
 protS = Convert(tups)
-
+nx.set_node_attributes(h, protS, name='protS')
+print(nx.attribute_assortativity_coefficient(h, "protS"))
 # Using Stellar library
 stellar_polblogs = StellarGraph.from_networkx(h)
 
