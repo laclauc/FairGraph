@@ -9,11 +9,16 @@ from sklearn.model_selection import train_test_split
 from stellargraph.data import BiasedRandomWalk
 from gensim.models import Word2Vec
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import label_binarize
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import LabelEncoder
+from sklearn import metrics, linear_model, model_selection, pipeline, preprocessing
+from sklearn.model_selection import GridSearchCV
 import pickle as pkl
 
 # Read author-author edge list and protected attribute
@@ -30,6 +35,7 @@ df["nodeId"] = df["nodeId"].astype(str)
 LE = LabelEncoder()
 df['Country'] = LE.fit_transform(df['Country'])
 
+
 protS = dict(zip(df['nodeId'], df['Country']))
 
 # Remove node in protS which are not in the graph (isolated nodes)
@@ -39,7 +45,7 @@ for key, value in protS.items():
         new.pop(key)
 
 protS = new.copy()
-
+print(g.number_of_edges())
 # Using Stellar library
 stellar_graph = StellarGraph.from_networkx(g)
 
@@ -219,13 +225,22 @@ for i in range(trials):
 
 
     def representation_bias(ex_train, label_train):
-        lr_clf = LogisticRegressionCV(Cs=10, cv=10, scoring="roc_auc", max_iter=1000).fit(ex_train, label_train)
-        # predicted = lr_clf.predict_proba(ex_test)
+        # Binary case
+        if len(set(label_train)) == 2:
+            lr_clf = LogisticRegressionCV(Cs=10, cv=5, scoring="roc_auc", max_iter=10000).fit(ex_train, label_train)
+            test_score = lr_clf.score(ex_train, label_train)
 
-        # check which class corresponds to positive links
-        # positive_column = list(lr_clf.classes_).index(1)
-        # return roc_auc_score(label_train, predicted[:, positive_column])
-        return lr_clf.score(ex_train, label_train)
+        else:
+            label_train = preprocessing.label_binarize(label_train, classes=[0, 1, 2, 3, 4])
+
+            model = OneVsRestClassifier(LogisticRegression(max_iter=5000))
+            params = {'estimator__C': 100. ** np.arange(-1, 1), }
+            print(sorted(model.get_params().keys()))
+            clf = GridSearchCV(model, params, cv=3, scoring='roc_auc')
+            clf.fit(ex_train, label_train)
+            test_score = clf.best_score_
+
+        return test_score
 
     binary_operators = [operator_hadamard]
     results = [run_link_prediction(op) for op in binary_operators]
