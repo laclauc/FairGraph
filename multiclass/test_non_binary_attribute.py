@@ -1,15 +1,6 @@
-import numpy as np
-import ot
-import scipy as sp
-from scipy.sparse import issparse
 import pickle
-import matplotlib.pyplot as plt
-from OTAdjacency import *
+from src.util.main_program import *
 import networkx as nx
-import pickle as pkl
-from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-from sklearn import model_selection
-from sklearn.preprocessing import label_binarize
 
 graph = pickle.load(open("graph_ievgen.pkl", "rb"))
 
@@ -50,7 +41,6 @@ X_init = np.random.normal(0., 1., X.shape)  # initial Dirac locations
 b = np.ones((n,)) / n  # weights of the barycenter (it will not be optimized, only the locations are optimized)
 lambdast = np.ones((3,)) / 3
 
-
 #X_bary, couplings = ot.gromov.gromov_barycenters(n, Cs, ps=weights, p=b, lambdas= lambdast, loss_fun = 'square_loss', max_iter=100, tol=1e-3)
 
 X_bary, log = ot.lp.free_support_barycenter(measures_locations=Xs, measures_weights = weights, X_init = X_init, b = b, log=True, metric = 'sqeuclidean')
@@ -74,10 +64,11 @@ plt.show()
 
 
 new_adj = np.concatenate(X_repaired)
-#new_adj = X_bary
+# new_adj = X_bary
 
 new_g = nx.from_numpy_matrix(new_adj)
 
+"""
 print("Before embedding")
 
 model = LogisticRegressionCV(cv=5, multi_class='multinomial', max_iter=1000, random_state=100).fit(X, protS)
@@ -109,3 +100,4 @@ model = LogisticRegressionCV(cv=5, multi_class = 'multinomial', max_iter=1000, r
 print(model.score(X_rep, protS_rep))
 
 
+"""

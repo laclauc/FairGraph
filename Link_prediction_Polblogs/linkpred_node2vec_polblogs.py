@@ -242,8 +242,8 @@ for i in range(trials):
 
     auc_train.append(best_result['score'])
 
-    print("Start node2vec on the graph test")
-    embedding_test, vec_test, s_test = node2vec_embedding(graph_test, "Test Graph", protS)
+    #print("Start node2vec on the graph test")
+    #embedding_test, vec_test, s_test = node2vec_embedding(graph_test, "Test Graph", protS)
 
     auc_protS = representation_bias(vec_train, s_train)
     rep_bias.append(auc_protS)
