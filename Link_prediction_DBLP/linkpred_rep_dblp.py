@@ -54,17 +54,17 @@ with open("dblp_emd_graph.pkl", "rb") as f:
     mat = pkl.load(f)
 
 new_graph = mat[0]
-X = nx.to_numpy_array(new_graph)
-X[X <= np.percentile(X, 99)] = 0
-new_graph = nx.from_numpy_matrix(X)
+# X = nx.to_numpy_array(new_graph)
+# X[X <= np.percentile(X, 99)] = 0
+# new_graph = nx.from_numpy_matrix(X)
 
 print(nx.density(g))
 print(nx.density(new_graph))
 
 # Get adjacency matrix
 
-# list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] < np.mean(X)]
-# new_graph.remove_edges_from(list_edge)
+list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] < 2e-4]
+new_graph.remove_edges_from(list_edge)
 lab = {k: j for k, j in zip(new_graph.nodes, lab_node_array[:, 1])}
 h = nx.relabel_nodes(new_graph, lab)
 
@@ -177,7 +177,7 @@ for i in range(trials):
 
 
     def link_prediction_classifier(max_iter=2000):
-        lr_clf = LogisticRegressionCV(Cs=10, cv=10, scoring="roc_auc", max_iter=max_iter)
+        lr_clf = LogisticRegressionCV(Cs=10, cv=2, scoring="roc_auc", max_iter=max_iter)
         return Pipeline(steps=[("sc", StandardScaler()), ("clf", lr_clf)])
 
 
@@ -203,14 +203,13 @@ for i in range(trials):
 
     def evaluate_bias(clf, link_features, abs_diff):
         pred = clf.predict(link_features)
-
-        same_group_count = 0
-        opp_group_count = 0
+        same_group_count = 1
+        opp_group_count = 1
 
         index = []
         c = 0
         for i in pred:
-            if i == 1:
+            if i != 0:
                 index.append(c)
             c += 1
 
@@ -220,7 +219,7 @@ for i in range(trials):
             else:
                 opp_group_count += 1
 
-        return opp_group_count / (same_group_count+1)
+        return opp_group_count / same_group_count
 
 
     def evaluate_consistency(clf, link_features):
@@ -267,7 +266,7 @@ for i in range(trials):
     def representation_bias(ex_train, label_train):
         # Binary case
         if len (set (label_train)) == 2:
-            lr_clf = LogisticRegressionCV (Cs=10, cv=5, scoring="roc_auc", max_iter=10000).fit (ex_train, label_train)
+            lr_clf = LogisticRegressionCV (Cs=10, cv=3, scoring="roc_auc", max_iter=10000).fit (ex_train, label_train)
             test_score = lr_clf.score (ex_train, label_train)
 
         else:
@@ -275,8 +274,7 @@ for i in range(trials):
 
             model = OneVsRestClassifier (LogisticRegression (max_iter=5000))
             params = {'estimator__C': 100. ** np.arange (-1, 1), }
-            print (sorted (model.get_params ().keys ()))
-            clf = GridSearchCV (model, params, cv=3, scoring='roc_auc')
+            clf = GridSearchCV (model, params, cv=2, scoring='roc_auc')
             clf.fit (ex_train, label_train)
             test_score = clf.best_score_
 
