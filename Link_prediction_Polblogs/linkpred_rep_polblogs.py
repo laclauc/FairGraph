@@ -42,7 +42,7 @@ prot_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
 
 # Open the repaired graph
-with open("repPolblogs/laplace_graph_05.pkl", "rb") as f:
+with open("repPolblogs/random_graph_05.pkl", "rb") as f:
     mat = pkl.load(f)
 
 new_graph = mat[0]
@@ -202,7 +202,7 @@ for i in range(trials):
             else:
                 opp_group_count += 1
 
-        return opp_group_count / same_group_count
+        return opp_group_count / (same_group_count+1)
 
 
     def evaluate_consistency(clf, link_features):
@@ -298,5 +298,5 @@ print("Average Representation Bias over 10 trials: %8.2f (%8.2f) " % (np.asarray
                                                                       np.asarray(rep_bias).std()))
 
 all_results = [auc, di, cons, rep_bias]
-with open('results/polblogs_node2vec_laplace05_05.pkl', 'wb') as outfile:
+with open('results/polblogs_node2vec_random_05.pkl', 'wb') as outfile:
     pkl.dump(all_results, outfile, pkl.HIGHEST_PROTOCOL)
