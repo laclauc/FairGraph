@@ -88,7 +88,7 @@ def shuffle_part(prot_s, prop_shuffle=0.1):
     return prot_s
 
 
-def repair_random(g, s):
+def repair_random(g, s, prob):
     """
     Repairing of the graph by adding random links between nodes of two different groups
     :param g: the graph
@@ -108,7 +108,7 @@ def repair_random(g, s):
     for i in idx_p0:
         for j in idx_p1:
             if x[i, j] == 0:
-                x_random[i, j] = np.random.choice([0, 1], p=[0.95, 0.05])
+                x_random[i, j] = np.random.choice([0, 1], p=[1-prob, prob])
                 x_random[j, i] = x_random[i, j]
 
     new_g = nx.from_numpy_matrix(x_random)
