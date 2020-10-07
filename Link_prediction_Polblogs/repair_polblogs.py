@@ -41,9 +41,9 @@ nx.set_node_attributes(g, s, 's')
 #    pkl.dump(emd_graph, outfile, pkl.HIGHEST_PROTOCOL)
 
 print("Adding random edges to the graph")
-new_g = repair_random(g, s_arr, prob=0.005)
+new_g = repair_random(g, s_arr, prob=0.001)
 random_graph = [new_g, s]
-with open('repPolblogs/random_graph_.pkl', 'wb') as outfile:
+with open('repPolblogs/random_graph_001.pkl', 'wb') as outfile:
     pkl.dump(random_graph, outfile, pkl.HIGHEST_PROTOCOL)
 
-# [0.01, 0.05, 0.1, 0.15, 0.2]
+# [0.001, 0.005, 0.1, 0.15, 0.2]

@@ -54,7 +54,7 @@ new_g = nx.from_numpy_matrix(new_x_l)
 emd_graph = [new_g, s]
 with open('fb_emd_graph.pkl', 'wb') as outfile:
     pkl.dump(emd_graph, outfile, pkl.HIGHEST_PROTOCOL)
-"""
+
 print("Repairing the graph with Laplacian")
 
 new_x_l, s, gamma, M = total_repair_reg(h, metric='euclidean', method="laplace", reg=5, case='bin', log=False,
@@ -65,3 +65,10 @@ new_g = nx.from_numpy_matrix(new_x_l)
 laplace_graph = [new_g, s]
 with open('fb_laplace_graph_5.pkl', 'wb') as outfile:
     pkl.dump(laplace_graph, outfile, pkl.HIGHEST_PROTOCOL)
+"""
+
+print("Adding random edges to the graph")
+new_g = repair_random(g, protSnum, prob=0.001)
+random_graph = [new_g, protS]
+with open('random_graph_001.pkl', 'wb') as outfile:
+    pkl.dump(random_graph, outfile, pkl.HIGHEST_PROTOCOL)
