@@ -1,6 +1,8 @@
 import pickle
 from src.util.main_program import *
 import networkx as nx
+from sklearn.linear_model import LogisticRegression
+from sklearn import model_selection
 
 graph = pickle.load(open("graph_ievgen.pkl", "rb"))
 
@@ -17,6 +19,20 @@ X0.append(X)
 
 n, d = X.shape
 protS = graph[1]
+
+# Predict the protected attributes
+kfold = model_selection.KFold(n_splits=3, random_state=100, shuffle=True)
+model_kfold = LogisticRegression(solver='lbfgs')
+
+"""
+print("Start learning embedding on the original graph")
+embedding_origin, s_origin, mod = emb_node2vec(g, protS)
+
+results_origin = model_selection.cross_val_score(model_kfold, embedding_origin, s_origin, cv=kfold,
+                                                 scoring='f1_weighted')
+
+print("AUC on the original graph is: %8.2f" % results_origin.mean())
+"""
 
 classes = np.unique(protS)
 
@@ -43,10 +59,10 @@ lambdast = np.ones((3,)) / 3
 
 #X_bary, couplings = ot.gromov.gromov_barycenters(n, Cs, ps=weights, p=b, lambdas= lambdast, loss_fun = 'square_loss', max_iter=100, tol=1e-3)
 
-X_bary, log = ot.lp.free_support_barycenter(measures_locations=Xs, measures_weights = weights, X_init = X_init, b = b, log=True, metric='euclidean')
+#X_bary, log = ot.lp.free_support_barycenter(measures_locations=Xs, measures_weights = weights, X_init = X_init, b = b, log=True, metric='euclidean')
 
-X_bary, log = free_support_barycenter_laplace(measures_locations=Xs, measures_weights = weights, reg_type='disp', reg_laplace=1e1,
-                                              reg_source=1, X_init = X_init, b = b, log=True, metric='euclidean')
+X_bary, log = free_support_barycenter_laplace(measures_locations=Xs, measures_weights = weights, reg_type='disp', reg_laplace=1e-1,
+                                              reg_source=1, X_init = X_init, b = b, log=True, metric='sqeuclidean')
 couplings = log['T']
 X0.append(X_bary)
 
@@ -72,3 +88,15 @@ new_adj = np.concatenate(X_repaired)
 
 new_g = nx.from_numpy_matrix(new_adj)
 
+auc_origin = []
+auc_repair = []
+
+
+print("Start learning embedding on the repaired graph")
+embedding_repair, s_repair, mod_rep = emb_node2vec(new_g, protS)
+
+results_repair = model_selection.cross_val_score(model_kfold, embedding_repair, s_repair, cv=kfold,
+                                                 scoring='f1_weighted')
+
+print("AUC on the repaired graph is: %8.2f" % results_repair.mean())
+auc_repair.append(results_repair.mean())
