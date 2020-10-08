@@ -63,7 +63,7 @@ print(nx.density(new_graph))
 
 # Get adjacency matrix
 
-list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] < 2e-4]
+list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] <= 2e-4]
 new_graph.remove_edges_from(list_edge)
 lab = {k: j for k, j in zip(new_graph.nodes, lab_node_array[:, 1])}
 h = nx.relabel_nodes(new_graph, lab)
@@ -73,7 +73,6 @@ h = nx.relabel_nodes(new_graph, lab)
 print(nx.density(g))
 print(nx.density(h))
 
-
 stellar_graph = StellarGraph.from_networkx(g)
 stellar_polblogs_lap = StellarGraph.from_networkx(h)
 
@@ -81,21 +80,28 @@ auc, di, cons, rep_bias = [], [], [], []
 auc_train = []
 trials = 5
 
+edges = np.array(h.edges())
 for i in range(trials):
 
     # Define an edge splitter on the corrected graph:
-    edge_splitter_test = EdgeSplitter(stellar_polblogs_lap)
-    graph_test, examples_test, labels_test = edge_splitter_test.train_test_split(p=0.3, method="global",
-                                                                                  keep_connected=True)
+    #
+    # edge_splitter_test = EdgeSplitter(stellar_polblogs_lap)
+    # graph_test, examples_test, labels_test = edge_splitter_test.train_test_split(p=0.2, method="global",
+    #                                                                              keep_connected=False)
     # Do the same process to compute a training subset from within the test graph
-    edge_splitter_train = EdgeSplitter(graph_test, stellar_polblogs_lap)
-    graph_train, examples, labels = edge_splitter_train.train_test_split(p=0.3, method="global", keep_connected=True)
-    (
-        examples_train,
-        examples_model_selection,
-        labels_train,
-        labels_model_selection,
-    ) = train_test_split(examples, labels, train_size=0.75, test_size=0.25)
+    # edge_splitter_train = EdgeSplitter(graph_test, stellar_polblogs_lap)
+    # graph_train, examples, labels = edge_splitter_train.train_test_split(p=0.2, method="global", keep_connected=False)
+    # (
+    #     examples_train,
+    #     examples_model_selection,
+    #    labels_train,
+    #    labels_model_selection,
+    #) = train_test_split(examples, labels, train_size=0.7, test_size=0.3)
+
+    np.random.shuffle(edges)
+    train_edges = edges[:int (0.8 * edges.shape[0])]
+    test_edges_pos = edges[int (0.8 * edges.shape[0]):]
+
 
     # Clear labels by removing "fake" links
     for k, i in enumerate(examples_test):
