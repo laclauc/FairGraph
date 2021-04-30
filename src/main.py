@@ -40,12 +40,11 @@ def repair_random(g, s, prob):
     return new_g
 
 
-def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='plot_cost_gamma'):
+def total_repair_emd(g, metric='euclidean', log=False, name='plot_cost_gamma'):
     """
     Repairing of the graph with OT and the emd version
     :param g: a graph to repair. The protected attribute is a feature of the node
     :param metric: the distance metric for the cost matrix
-    :param case: the new graph is by nature a weighed one. We can also binarize it according to a threshold ('bin')
     :param log: if true plot the cost matrix and the transportation plan
     :param name: name of the file to save the figures
     :return: the repaired graph, the transportation plan, the cost matrix
@@ -54,8 +53,8 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     x = nx.adjacency_matrix(g)
     s = nx.get_node_attributes(g, 's')
     s = np.fromiter(s.values(), dtype=int)
-    otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard', 'mahalanobis', 'matching', 'seuclidean',
-               'sqeuclidean', ]
+    otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard',
+                'mahalanobis', 'matching', 'seuclidean','sqeuclidean', ]
 
     if issparse(x):
         x = x.todense()
@@ -100,9 +99,6 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     new_x[idx_p0, :] = x_0_rep
     new_x[idx_p1, :] = x_1_rep
 
-    if case == 'bin':
-        new_x[np.where(new_x < np.quantile(new_x, 0.4)) == 0]
-
     if log:
         plt.imshow(gamma)
         plt.colorbar()
@@ -117,24 +113,21 @@ def total_repair_emd(g, metric='euclidean', case='weighted', log=False, name='pl
     return new_x, s, gamma, m
 
 
-def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta=1, case='bin', log=False, name='plot_cost_gamma'):
+def total_repair_reg(g, metric='sqeuclidean', reg=0.01, eta=1, log=False):
     """
     Repairing of the graph with OT and the sinkhorn version
-    :param g: a graph to repair. The protected attribute is a feature of the node
+    :param g: a graph to repair. The protected attribute is the node attribute
     :param metric: the distance metric for the cost matrix
-    :param method: xx
     :param reg : entropic regularisation term
-    :param case: the new graph is by nature a weighed one. We can also binarize it according to a threshold ('bin')
-    :param log: if true plot the cost matrix and the transportation plan
-    :param name: name of the file to save the figures
+    :param case: the new graph is by nature a weighed one
     :return: the repaired graph, the transportation plan, the cost matrix
     """
 
     x = nx.adjacency_matrix(g)
     s = nx.get_node_attributes(g, 's')
     s = np.fromiter(s.values(), dtype=int)
-    otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard', 'mahalanobis', 'matching', 'seuclidean',
-               'sqeuclidean', ]
+    otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard',
+                'mahalanobis', 'matching', 'seuclidean','sqeuclidean', ]
 
     if issparse(x):
         x = x.todense()
@@ -164,26 +157,12 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta=1
         m = np.asarray(m_sim)
     m = np.asarray(m/m.max())
 
-    # Sinkhorn transport
-    if method == "sinkhorn":
-        gamma = ot.sinkhorn(a, b, m, reg)
-
-    elif method == 'laplace':
-        # kwargs = {'sim': 'gauss', 'alpha': 0.5}
-        kwargs = {'sim': 'knn', 'nn': 5, 'alpha': 0.5}
-        gamma = compute_transport(x_0, x_1, method='laplace', metric=metric, weights='unif', reg=reg,
-                                  nbitermax=5000, solver=None, wparam=1, **kwargs)
-    elif method == 'laplace_sinkhorn':
-        kwargs = {'sim': 'gauss', 'alpha': 0.5}
-        # kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
-        gamma = compute_transport(x_0, x_1, method='laplace_sinkhorn', metric=metric, weights='unif', reg=reg,
-                                  nbitermax=3000, eta=eta, solver=None, wparam=1, **kwargs)
-
-    elif method == 'laplace_traj':
-        # kwargs = {'sim': 'gauss', 'alpha': 0.5}
-        kwargs = {'sim': 'knn', 'nn': 3, 'alpha': 0.5}
-        gamma = compute_transport(x_0, x_1, method='laplace_traj', metric=metric, weights='unif', reg=reg,
-                                  nbitermax=3000, solver=None, wparam=1, **kwargs)
+    # Transport
+    # kwargs = {'sim': 'gauss', 'alpha': 0.5}
+    kwargs = {'sim': 'knn', 'nn': 5, 'alpha': 0.5}
+    gamma = compute_transport(x_0, x_1, method='laplace', metric=metric,
+                                weights='unif', reg=reg, nbitermax=5000,
+                                solver=None, wparam=1, **kwargs)
 
     # Total data repair
     pi_0 = n0 / (n0 + n1)
@@ -195,17 +174,6 @@ def total_repair_reg(g, metric='sqeuclidean', method="sinkhorn", reg=0.01, eta=1
     new_x = np.zeros(x.shape)
     new_x[idx_p0, :] = x_0_rep
     new_x[idx_p1, :] = x_1_rep
-
-    if log:
-        plt.imshow(gamma)
-        plt.colorbar()
-        plt.show()
-        plt.savefig('gamma_' + name + '.png')
-
-        plt.imshow(m)
-        plt.colorbar()
-        plt.show()
-        plt.savefig('costMatrix_' + name + '.png')
 
     return new_x, s, gamma, m
 

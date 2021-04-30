@@ -500,7 +500,7 @@ def computeTransportLaplacianSymmetric_fw(distances, Ss, St, xs, xt, reg=1e-9, r
 
         niter += 1
 
-        if niter % 100 == 0:
+        if niter % 1000 == 0:
             print('{:5s}|{:12s}'.format('It.', 'Err') + '\n' + '-' * 19)
             print('{:5d}|{:8e}|'.format(niter, err))
 
