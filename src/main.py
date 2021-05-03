@@ -211,7 +211,7 @@ def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10, f
 
     node2vec = Node2Vec(g, dimensions=dimension, walk_length=walk_length, num_walks=num_walks)
     model = node2vec.fit(window=window, min_count=1)
-    idx = list(map(int, model.wv.index2word))
+    idx = list(map(int, model.wv.index_to_key))
     emb_x = model.wv.vectors
     new_s = s[idx]
     model.save(filename)

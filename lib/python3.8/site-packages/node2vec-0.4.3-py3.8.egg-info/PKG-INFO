@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: node2vec
+Version: 0.4.3
+Summary: Implementation of the node2vec algorithm.
+Home-page: https://github.com/eliorc/node2vec
+Author: Elior Cohen
+Author-email: elior.cohen.p@gmail.com
+License: MIT
+Description: UNKNOWN
+Keywords: machine learning,embeddings
+Platform: UNKNOWN
