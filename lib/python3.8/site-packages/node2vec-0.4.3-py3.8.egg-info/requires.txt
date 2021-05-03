@@ -1,5 +1,0 @@
-networkx
-gensim
-numpy
-tqdm
-joblib>=0.13.2
