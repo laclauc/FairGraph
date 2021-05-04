@@ -196,7 +196,7 @@ def visuTSNE(X, protS, k=2, seed=0, plotName='tsne_visu'):
     plt.show()
 
 
-def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10, filename='node2vec'):
+def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10, save=False):
     """
     Compute the node embedding using Node2Vec
     :param g: a graph
@@ -205,7 +205,7 @@ def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10, f
     :param walk_length: length of the random walk
     :param num_walks: number of walks
     :param window: window
-    :param filename: name of the file containing the node2vec model
+    :param save: if true save the node2vec model
     :return: the embedding matrix and the associate protected attribute
     """
 
@@ -214,7 +214,7 @@ def emb_node2vec(g, s, dimension=32, walk_length=15, num_walks=100, window=10, f
     idx = list(map(int, model.wv.index_to_key))
     emb_x = model.wv.vectors
     new_s = s[idx]
-    model.save(filename)
+    if save: model.save('node2vec_model')
     return emb_x, new_s, model
 
 
