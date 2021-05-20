@@ -1,5 +1,5 @@
 # fairOT-embedding
-Code for the AiStat 2021 article : All of the Fairness for Edge Prediction with Optimal Transport
+Code for the AISATS 2021 article : [All of the Fairness for Edge Prediction with Optimal Transport](http://proceedings.mlr.press/v130/laclau21a/laclau21a.pdf).
 
 -------------------------------------------------------------------------------------------------
       
@@ -17,7 +17,7 @@ CONTENT
   1. PREAMBLE
   
 This work  presents the contribution of the article 
-"All of the Fairness for Edge Prediction with Optimal Transport" accepted to AiStat 2021, where we study the problem of fairness for the task of edge prediction in graphs. 
+"All of the Fairness for Edge Prediction with Optimal Transport" accepted to AISTATS 2021, where we study the problem of fairness for the task of edge prediction in graphs. 
 
   2. ABOUT and CITATION 
  
@@ -37,7 +37,7 @@ If you use this repository, please cite:
   
   3. REQUIREMENTS
   
-  Required packages can be installed with 
+  Required packages can be installed with the following command in your terminal :
   
   ```
   pip install -r requirements.txt
@@ -45,7 +45,7 @@ If you use this repository, please cite:
   
   4. DETAILS
   
-  * demo-synthetic.ipynb : reproduce results from the Appendix of the AISTAT 21 paper. Repairing is done with Node2Vec. 
-  * demo-polblogs.py : IN PROGRESS 
+  * `demo-synthetic.ipynb` : reproduce results from the [Appendix](http://proceedings.mlr.press/v130/laclau21a/laclau21a-supp.pdf) of the paper. 
+  * `demo-polblogs.py` : IN PROGRESS 
   
   
