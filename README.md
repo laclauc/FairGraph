@@ -1,5 +1,5 @@
 # fairOT-embedding
-Code for the AISATS 2021 article : [All of the Fairness for Edge Prediction with Optimal Transport](http://proceedings.mlr.press/v130/laclau21a/laclau21a.pdf).
+Code for the AISTATS 2021 article : [All of the Fairness for Edge Prediction with Optimal Transport](http://proceedings.mlr.press/v130/laclau21a/laclau21a.pdf).
 
 -------------------------------------------------------------------------------------------------
       
