@@ -46,6 +46,6 @@ If you use this repository, please cite:
   4. DETAILS
   
   * `demo-synthetic.ipynb` : reproduce results from the [Appendix](http://proceedings.mlr.press/v130/laclau21a/laclau21a-supp.pdf) of the paper. 
-  * `demo-polblogs.py` : IN PROGRESS 
+  * `demo-polblogs.py` : reproduce results from the main paper on Polblog. Note that the repaired graphs are also available for direct use. The requirements file does not contain the necessary libraries for this demo. Update coming soon.
   
   
