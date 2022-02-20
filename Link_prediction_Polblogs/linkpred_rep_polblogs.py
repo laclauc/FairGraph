@@ -42,13 +42,13 @@ prot_arr = np.array([x[1] for x in tups])
 adj_g = nx.adjacency_matrix(g)
 
 # Open the repaired graph
-with open("repPolblogs/random_graph_001.pkl", "rb") as f:
+with open("repPolblogs/laplace_graph_1.pkl", "rb") as f:
     mat = pkl.load(f)
 
 new_graph = mat[0]
-# print(nx.density(new_graph))
-# list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] <= 0.5]
-# new_graph.remove_edges_from(list_edge)
+print(nx.density(new_graph))
+list_edge = [(u, v) for (u, v, d) in new_graph.edges(data=True) if d['weight'] <= 0.5]
+new_graph.remove_edges_from(list_edge)
 lab = {k: j for k, j in zip(new_graph.nodes, lab_node_array[:, 1])}
 h = nx.relabel_nodes(new_graph, lab)
 

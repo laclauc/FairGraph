@@ -181,11 +181,9 @@ for i in range(trials):
         clf.fit(link_features, link_labels)
         return clf
 
-
     def link_prediction_classifier(max_iter=2000):
         lr_clf = LogisticRegressionCV(Cs=10, cv=2, scoring="roc_auc", max_iter=max_iter)
         return Pipeline(steps=[("sc", StandardScaler()), ("clf", lr_clf)])
-
 
     def evaluate_link_prediction_model(clf, link_examples_test, link_labels_test, get_embedding,
                                        binary_operator, abs_diff_test):
@@ -198,14 +196,12 @@ for i in range(trials):
         score_consistency = evaluate_consistency(clf, link_features_test)
         return score, score_bias, score_consistency
 
-
     def evaluate_roc_auc(clf, link_features, link_labels):
         predicted = clf.predict_proba(link_features)
 
         # check which class corresponds to positive links
         positive_column = list(clf.classes_).index(1)
         return roc_auc_score(link_labels, predicted[:, positive_column])
-
 
     def evaluate_bias(clf, link_features, abs_diff):
         pred = clf.predict(link_features)
@@ -331,4 +327,3 @@ print("Average Representation Bias over 10 trials: %8.2f (%8.2f) " % (np.asarray
 all_results = [auc, di, cons, rep_bias]
 with open('results/dblp_node2vec_emd.pkl', 'wb') as outfile:
     pkl.dump(all_results, outfile, pkl.HIGHEST_PROTOCOL)
-

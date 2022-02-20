@@ -16,6 +16,7 @@ import sys
 # trial = int(sys.argv[2])
 # log = sys.argv[3]
 # algo = sys.argv[4]
+
 def density(A):
     # calculate density
     density = np.count_nonzero(A) / float(A.size)
@@ -36,12 +37,12 @@ def equalize_density(A_new, A_old, prop_add):
 
     return tmp
 
-synthetic_case = 'g5'
+synthetic_case = 'g3'
 trial = 1
 log = 'True'
 algo = 'emd'
 
-reg = [0.001, 0.05, 0.1, 0.3, 0.5, 0.7, 0.9, 1, 5, 10]
+reg = [0.05, 0.1, 0.3, 0.5, 0.7, 0.9, 1, 5, 10, 50]
 # reg = [0.001, 0.05, 0.5,  0.3, 0.9, 1, 5, 10, 30, 50]
 
 if synthetic_case == 'g1':
@@ -70,9 +71,10 @@ elif synthetic_case == 'g4':
 
 elif synthetic_case == 'g5':
     method = 'partition'
-    probs = [[0.20, 0.002, 0.003], [0.002, 0.20, 0.003], [0.003, 0.003, 0.20]]
+    probs = [[0.10, 0.001, 0.002], [0.001, 0.10, 0.002], [0.002, 0.002, 0.10]]
     sizes = [50, 50, 50]
     number_class = "multi"
+    print(probs)
 
 auc_origin, auc_repair = [], []
 density_old, density_rep = [], []
@@ -101,7 +103,7 @@ for i in range(trial):
 
             # Filter out the smallest weights to keep a reasonable density
             list_edge = [(u, v) for (u, v, d) in new_g.edges(data=True) if d['weight'] <= 0.5]
-            new_g.remove_edges_from (list_edge)
+            new_g.remove_edges_from(list_edge)
 
             # Coefficient of assortativity
             dict_s = {i: s[i] for i in range(0, len(s))}
@@ -114,8 +116,8 @@ for i in range(trial):
         elif number_class == "multi":
             X0 = []
 
-            X = nx.to_numpy_array (g)
-            X0.append (X)
+            X = nx.to_numpy_array(g)
+            X0.append(X)
             n, d = X.shape
 
             classes = np.unique(s)
@@ -197,8 +199,10 @@ for i in range(trial):
             clf = GridSearchCV(model, params, cv=5, scoring='roc_auc')
             clf.fit(embedding_repair, s_repair)
             auc_reg.append(clf.best_score_)
+
         print(auc_reg)
         print(ass_reg)
+
     x = range(10)
     plt.plot(x, auc_reg, marker='o', markersize=8, color='crimson', linestyle='solid', linewidth=2, label='RB')
     plt.plot(x, ass_reg, marker='s', markersize=8, color='steelblue', linestyle='dashdot', linewidth=2, label='Ass.')
