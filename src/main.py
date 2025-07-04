@@ -50,7 +50,7 @@ def total_repair_emd(g, metric='euclidean', log=False, name='plot_cost_gamma'):
     :return: the repaired graph, the transportation plan, the cost matrix
     """
 
-    x = nx.adjacency_matrix(g)
+    x = nx.adjacency_matrix(g).toarray()
     s = nx.get_node_attributes(g, 's')
     s = np.fromiter(s.values(), dtype=int)
     otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard',
@@ -123,7 +123,7 @@ def total_repair_reg(g, metric='sqeuclidean', reg=0.01, eta=1, log=False):
     :return: the repaired graph, the transportation plan, the cost matrix
     """
 
-    x = nx.adjacency_matrix(g)
+    x = nx.adjacency_matrix(g).toarray()
     s = nx.get_node_attributes(g, 's')
     s = np.fromiter(s.values(), dtype=int)
     otdists = ['cosine', 'dice', 'euclidean', 'hamming', 'jaccard',
